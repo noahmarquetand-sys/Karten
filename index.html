@@ -127,15 +127,15 @@ th { color: var(--text-muted); font-weight: 600; }
   <!-- BINOKEL PAGE -->
   <main id="pageBinokel">
     <section class="card">
-      <h2>👥 Spieler Konfiguration</h2>
+      <h2>👥 Spieler / Teams Konfiguration</h2>
       <div class="input-group" style="margin-bottom: 12px;">
-        <label>Anzahl Spieler</label>
+        <label>Anzahl Teams / Spieler</label>
         <select id="bPlayerCount">
-          <option value="2">2 Spieler</option>
-          <option value="3">3 Spieler</option>
-          <option value="4" selected>4 Spieler</option>
-          <option value="5">5 Spieler</option>
-          <option value="6">6 Spieler</option>
+          <option value="2" selected>2 Teams / Parteien (Standard 4 oder 6 Spieler)</option>
+          <option value="3">3 Parteien</option>
+          <option value="4">4 Einzelspieler</option>
+          <option value="5">5 Einzelspieler</option>
+          <option value="6">6 Einzelspieler</option>
         </select>
       </div>
       <div class="player-grid" id="bPlayerInputs"></div>
@@ -278,7 +278,7 @@ const MELDS_DATA = [
 
 let state = {
   mode: 'binokel',
-  binokel: { count: 4, players: ['Spieler 1', 'Spieler 2', 'Spieler 3', 'Spieler 4', 'Spieler 5', 'Spieler 6'], scores: [0,0,0,0,0,0], history: [] },
+  binokel: { count: 2, players: ['Team A (Noah & Max)', 'Team B (Lukas & Tim)', 'Spieler 3', 'Spieler 4', 'Spieler 5', 'Spieler 6'], scores: [0,0,0,0,0,0], history: [] },
   thirty: { count: 4, startPoints: 30, players: ['Spieler 1', 'Spieler 2', 'Spieler 3', 'Spieler 4', 'Spieler 5', 'Spieler 6'], scores: [30,30,30,30,30,30], history: [] }
 };
 
@@ -345,7 +345,14 @@ function calculateBinokelTotal() {
   let total = 0;
   if (status === 'ab') total = -reizVal;
   else if (status === 'ab2') total = -reizVal * 2;
-  else total = meldSum + stichVal;
+  else {
+    // Wenn 0 Stiche gemacht wurden, verfällt die Meldung automatisch
+    if (stichVal === 0 && meldSum > 0) {
+      total = 0;
+    } else {
+      total = meldSum + stichVal;
+    }
+  }
 
   $('sumMeld').textContent = meldSum; $('sumStich').textContent = stichVal; $('sumTotal').textContent = total;
   return total;
@@ -357,7 +364,7 @@ function renderBinokel() {
 
   const inputsDiv = $('bPlayerInputs'); inputsDiv.innerHTML = '';
   for (let i = 0; i < count; i++) {
-    inputsDiv.innerHTML += `<div class="input-group"><label>Spieler ${i+1}</label><input type="text" value="${state.binokel.players[i]}" oninput="updateBName(${i}, this.value)"></div>`;
+    inputsDiv.innerHTML += `<div class="input-group"><label>Team / Spieler ${i+1}</label><input type="text" value="${state.binokel.players[i]}" oninput="updateBName(${i}, this.value)"></div>`;
   }
 
   const select = $('bActivePlayer'); select.innerHTML = '';
@@ -382,7 +389,7 @@ function renderBinokel() {
   });
 }
 
-function updateBName(idx, val) { state.binokel.players[idx] = val.trim() || `Spieler ${idx+1}`; renderBinokel(); saveState(); }
+function updateBName(idx, val) { state.binokel.players[idx] = val.trim() || `Team ${idx+1}`; renderBinokel(); saveState(); }
 
 function render30() {
   const count = state.thirty.count;
