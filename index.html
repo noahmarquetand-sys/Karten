@@ -139,13 +139,11 @@ th { color: var(--text-muted); font-weight: 600; }
     <section class="card">
       <h2>👥 Spieler / Teams Konfiguration</h2>
       <div class="input-group">
-        <label>Anzahl Teams / Spieler</label>
+        <label>Spielform / Modi</label>
         <select id="bPlayerCount">
-          <option value="2">2 Teams / Parteien</option>
-          <option value="3" selected>3 Einzelspieler / Parteien</option>
-          <option value="4">4 Einzelspieler</option>
-          <option value="5">5 Einzelspieler</option>
-          <option value="6">6 Einzelspieler</option>
+          <option value="3" selected>3 Einzelspieler (Jeder gegen Jeden)</option>
+          <option value="2">4 Personen (2 gegen 2 Teams)</option>
+          <option value="2_6">6 Personen (3 gegen 3 Teams)</option>
         </select>
       </div>
       <div class="player-grid" id="bPlayerInputs"></div>
@@ -212,13 +210,11 @@ th { color: var(--text-muted); font-weight: 600; }
       <h2>👥 Spieler & Startpunkte</h2>
       <div class="player-grid" style="margin-bottom: 12px;">
         <div class="input-group">
-          <label>Anzahl Spieler</label>
+          <label>Spielform / Modi</label>
           <select id="aPlayerCount">
-            <option value="2">2 Spieler</option>
-            <option value="3" selected>3 Spieler</option>
-            <option value="4">4 Spieler</option>
-            <option value="5">5 Spieler</option>
-            <option value="6">6 Spieler</option>
+            <option value="3" selected>3 Einzelspieler</option>
+            <option value="4">4 Einzelspieler / Teams</option>
+            <option value="6">6 Einzelspieler / Teams</option>
           </select>
         </div>
         <div class="input-group">
@@ -302,9 +298,9 @@ let state = {
 let selectedMelds = {};
 const $ = id => document.getElementById(id);
 
-function saveState() { localStorage.setItem('binokel_v15_3p', JSON.stringify(state)); }
+function saveState() { localStorage.setItem('binokel_v16_teams', JSON.stringify(state)); }
 function loadState() {
-  const saved = localStorage.getItem('binokel_v15_3p');
+  const saved = localStorage.getItem('binokel_v16_teams');
   if (saved) { try { state = JSON.parse(saved); } catch(e){} }
 }
 
@@ -374,13 +370,21 @@ function calculateBinokelTotal() {
 function getPName(mode, idx) {
   const name = mode === 'binokel' ? state.binokel.players[idx] : state.thirty.players[idx];
   if (name && name.trim() !== '') return name;
-  return mode === 'binokel' ? `Team / Sp ${idx+1}` : `Spieler ${idx+1}`;
+  
+  if (mode === 'binokel') {
+    if (state.binokel.count === 3) return `Spieler ${idx+1}`;
+    if (state.binokel.count === 2) return `Team ${idx+1} (2p)`;
+    return `Team ${idx+1} (3p)`;
+  } else {
+    return `Spieler ${idx+1}`;
+  }
 }
 
 function buildInputs() {
   const bInputsDiv = $('bPlayerInputs'); bInputsDiv.innerHTML = '';
   for (let i = 0; i < state.binokel.count; i++) {
-    bInputsDiv.innerHTML += `<div class="input-group"><label>Spieler / Team ${i+1}</label><input type="text" id="bInp_${i}" value="${state.binokel.players[i] || ''}" placeholder="Spieler ${i+1}" onchange="onNameChange('binokel', ${i}, this.value)"></div>`;
+    const defaultPlaceholder = state.binokel.count === 3 ? `Spieler ${i+1}` : `Team ${i+1}`;
+    bInputsDiv.innerHTML += `<div class="input-group"><label>${defaultPlaceholder}</label><input type="text" id="bInp_${i}" value="${state.binokel.players[i] || ''}" placeholder="${defaultPlaceholder}" onchange="onNameChange('binokel', ${i}, this.value)"></div>`;
   }
 
   const aInputsDiv = $('aPlayerInputs'); aInputsDiv.innerHTML = '';
@@ -503,8 +507,14 @@ function bindEvents() {
     $('page30').classList.remove('hidden'); $('pageBinokel').classList.add('hidden'); saveState();
   };
 
-  $('bPlayerCount').onchange = (e) => { state.binokel.count = parseInt(e.target.value); buildInputs(); updateLabels(); saveState(); };
-  $('aPlayerCount').onchange = (e) => { state.thirty.count = parseInt(e.target.value); buildInputs(); updateLabels(); saveState(); };
+  $('bPlayerCount').onchange = (e) => { 
+    state.binokel.count = e.target.value === '2_6' ? 2 : parseInt(e.target.value); 
+    buildInputs(); updateLabels(); saveState(); 
+  };
+  $('aPlayerCount').onchange = (e) => { 
+    state.thirty.count = parseInt(e.target.value); 
+    buildInputs(); updateLabels(); saveState(); 
+  };
 
   ['bStiche', 'bReizwert', 'bStatus'].forEach(id => { $(id).onchange = calculateBinokelTotal; });
 
@@ -616,7 +626,7 @@ function bindEvents() {
 
   $('resetBtn').onclick = () => {
     if (confirm('Neues Spiel starten? Alle Punkte und Namen werden zurückgesetzt.')) {
-      localStorage.removeItem('binokel_v15_3p');
+      localStorage.removeItem('binokel_v16_teams');
       state.binokel.players = ['', '', '', '', '', ''];
       state.binokel.scores = [0,0,0,0,0,0]; state.binokel.history = [];
       state.thirty.players = ['', '', '', '', '', ''];
@@ -630,7 +640,7 @@ function bindEvents() {
 
 window.onload = () => {
   loadState(); initMeldButtons(); bindEvents();
-  $('bPlayerCount').value = state.binokel.count;
+  $('bPlayerCount').value = state.binokel.count === 3 ? "3" : "2";
   $('aPlayerCount').value = state.thirty.count;
   $('startPoints30').value = state.thirty.startPoints || 30;
   buildInputs();
