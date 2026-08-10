@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Binokel & 30 ab – Punktezähler Pro</title>
+<title>Binokel & 30 ab – KartenZähler Pro</title>
 <style>
 :root {
   --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
@@ -93,7 +93,7 @@ input[type="text"], input[type="number"], select {
 .score-val { font-size: 24px; font-weight: 900; color: #fff; }
 .score-sub { font-size: 10px; color: var(--yellow); margin-top: 2px; font-weight: bold; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: center; }
-th, td { padding: 10px 6px; border-bottom: 1px solid var(--card-border); }
+th, td { padding: 10px 6px; border-bottom: 1px solid var(--card-border); vertical-align: middle; }
 th { color: var(--text-muted); font-weight: 600; }
 .stich-box { background: #0f172a; border: 1px solid var(--card-border); border-radius: 10px; padding: 10px; margin-bottom: 8px; }
 .badge-neg { color: var(--red); font-weight: bold; }
@@ -106,6 +106,13 @@ th { color: var(--text-muted); font-weight: 600; }
   font-weight: 800; font-size: 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: none; z-index: 100; text-align: center;
 }
 .toast.error { background: var(--red); color: white; }
+
+.card-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; vertical-align: middle; margin-right: 4px;
+}
+.card-icon svg { width: 100%; height: 100%; }
+.suit-label { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -134,8 +141,8 @@ th { color: var(--text-muted); font-weight: 600; }
       <div class="input-group">
         <label>Anzahl Teams / Spieler</label>
         <select id="bPlayerCount">
-          <option value="2" selected>2 Teams / Parteien</option>
-          <option value="3">3 Parteien</option>
+          <option value="2">2 Teams / Parteien</option>
+          <option value="3" selected>3 Einzelspieler / Parteien</option>
           <option value="4">4 Einzelspieler</option>
           <option value="5">5 Einzelspieler</option>
           <option value="6">6 Einzelspieler</option>
@@ -208,8 +215,8 @@ th { color: var(--text-muted); font-weight: 600; }
           <label>Anzahl Spieler</label>
           <select id="aPlayerCount">
             <option value="2">2 Spieler</option>
-            <option value="3">3 Spieler</option>
-            <option value="4" selected>4 Spieler</option>
+            <option value="3" selected>3 Spieler</option>
+            <option value="4">4 Spieler</option>
             <option value="5">5 Spieler</option>
             <option value="6">6 Spieler</option>
           </select>
@@ -227,10 +234,10 @@ th { color: var(--text-muted); font-weight: 600; }
       <div class="input-group" style="margin-bottom: 12px;">
         <label>Trumpf dieser Runde</label>
         <select id="aTrumpf">
+          <option value="eichel">Eichel (Pflicht! Niemand darf raus gehen)</option>
           <option value="herz">♥️ Herz (Stiche zählen DOPPELT)</option>
-          <option value="kreuz">♣️ Kreuz (Pflicht! Niemand darf raus gehen)</option>
-          <option value="schippe">♠️ Schippe (1x)</option>
-          <option value="bollen">♦️ Bollen (1x)</option>
+          <option value="laub">🍃 Laub (1x)</option>
+          <option value="schellen">🔔 Schellen / Bollen (1x)</option>
         </select>
       </div>
 
@@ -260,6 +267,13 @@ th { color: var(--text-muted); font-weight: 600; }
 <div class="toast" id="toast"></div>
 
 <script>
+const SUIT_ICONS = {
+  eichel: `<span class="card-icon"><svg viewBox="0 0 100 100"><path d="M50 5 C38 5 32 15 32 28 C42 28 45 15 50 5 Z" fill="#8B4513"/><rect x="47" y="1" width="6" height="7" rx="2" fill="#5C2E0B"/><path d="M30 25 C25 25 25 35 30 38 L70 38 C75 35 75 25 70 25 Z" fill="#A0522D"/><path d="M30 38 C30 65 42 85 50 95 C58 85 70 65 70 38 Z" fill="#22C55E"/><path d="M35 38 C35 60 45 75 50 82 C55 75 65 60 65 38 Z" fill="#EAB308"/></svg></span>`,
+  laub: `<span class="card-icon"><svg viewBox="0 0 100 100"><path d="M50 5 C20 35 10 65 30 85 C45 100 55 100 70 85 C90 65 80 35 50 5 Z" fill="#16A34A"/><path d="M50 5 L50 95 M50 35 L25 50 M50 55 L75 70 M50 20 L70 32 M50 70 L30 82" stroke="#15803D" stroke-width="5" stroke-linecap="round"/></svg></span>`,
+  herz: `<span class="card-icon"><svg viewBox="0 0 100 100"><path d="M50 88 C50 88 10 60 10 33 C10 17 22 8 36 8 C44 8 48 13 50 18 C52 13 56 8 64 8 C78 8 90 17 90 33 C90 60 50 88 50 88 Z" fill="#DC2626"/></svg></span>`,
+  schellen: `<span class="card-icon"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="#F59E0B"/><path d="M20 50 A30 30 0 0 0 80 50 Z" fill="#D97706"/><line x1="15" y1="50" x2="85" y2="50" stroke="#78350F" stroke-width="6"/><circle cx="50" cy="68" r="7" fill="#451A03"/><rect x="44" y="5" width="12" height="10" rx="2" fill="#78350F"/></svg></span>`
+};
+
 const MELDS_DATA = [
   { id: 'tfam', name: 'Trumpf-Familie', pts: 150 },
   { id: 'fam',  name: 'Familie (andere)', pts: 100 },
@@ -281,16 +295,16 @@ const MELDS_DATA = [
 
 let state = {
   mode: 'binokel',
-  binokel: { count: 2, players: ['', '', '', '', '', ''], scores: [0,0,0,0,0,0], history: [] },
-  thirty: { count: 4, startPoints: 30, players: ['', '', '', '', '', ''], scores: [30,30,30,30,30,30], rausCounts: [0,0,0,0,0,0], history: [] }
+  binokel: { count: 3, players: ['', '', '', '', '', ''], scores: [0,0,0,0,0,0], history: [] },
+  thirty: { count: 3, startPoints: 30, players: ['', '', '', '', '', ''], scores: [30,30,30,30,30,30], history: [] }
 };
 
 let selectedMelds = {};
 const $ = id => document.getElementById(id);
 
-function saveState() { localStorage.setItem('binokel_v9_kreuz', JSON.stringify(state)); }
+function saveState() { localStorage.setItem('binokel_v15_3p', JSON.stringify(state)); }
 function loadState() {
-  const saved = localStorage.getItem('binokel_v9_kreuz');
+  const saved = localStorage.getItem('binokel_v15_3p');
   if (saved) { try { state = JSON.parse(saved); } catch(e){} }
 }
 
@@ -360,13 +374,13 @@ function calculateBinokelTotal() {
 function getPName(mode, idx) {
   const name = mode === 'binokel' ? state.binokel.players[idx] : state.thirty.players[idx];
   if (name && name.trim() !== '') return name;
-  return mode === 'binokel' ? `Team ${idx+1}` : `Spieler ${idx+1}`;
+  return mode === 'binokel' ? `Team / Sp ${idx+1}` : `Spieler ${idx+1}`;
 }
 
 function buildInputs() {
   const bInputsDiv = $('bPlayerInputs'); bInputsDiv.innerHTML = '';
   for (let i = 0; i < state.binokel.count; i++) {
-    bInputsDiv.innerHTML += `<div class="input-group"><label>Team / Spieler ${i+1}</label><input type="text" id="bInp_${i}" value="${state.binokel.players[i] || ''}" placeholder="Team ${i+1}" onchange="onNameChange('binokel', ${i}, this.value)"></div>`;
+    bInputsDiv.innerHTML += `<div class="input-group"><label>Spieler / Team ${i+1}</label><input type="text" id="bInp_${i}" value="${state.binokel.players[i] || ''}" placeholder="Spieler ${i+1}" onchange="onNameChange('binokel', ${i}, this.value)"></div>`;
   }
 
   const aInputsDiv = $('aPlayerInputs'); aInputsDiv.innerHTML = '';
@@ -380,6 +394,12 @@ function onNameChange(mode, idx, val) {
   else state.thirty.players[idx] = val;
   saveState();
   updateLabels();
+}
+
+function wasRausLastRound(playerIdx) {
+  if (state.thirty.history.length === 0) return false;
+  const lastRound = state.thirty.history[state.thirty.history.length - 1];
+  return !!(lastRound.rausFlags && lastRound.rausFlags[playerIdx]);
 }
 
 function updateLabels() {
@@ -410,16 +430,16 @@ function updateLabels() {
   const aCount = state.thirty.count;
   const stichContainer = $('stichInputsContainer'); stichContainer.innerHTML = '';
   for (let i = 0; i < aCount; i++) {
-    const rausCount = state.thirty.rausCounts[i] || 0;
+    const isSperre = wasRausLastRound(i);
     let rausSelectHTML = '';
     
-    if (rausCount >= 2) {
-      rausSelectHTML = `<div style="color:var(--red); font-size:11px; font-weight:bold; margin-top:4px;">🛑 2x Raus -> Fein bleiben!</div>`;
+    if (isSperre) {
+      rausSelectHTML = `<div style="color:var(--red); font-size:11px; font-weight:bold; margin-top:4px;">🛑 Letzte Runde Raus -> Fein bleiben!</div>`;
     } else {
       rausSelectHTML = `
         <select class="aRausInput" data-idx="${i}" style="margin-top:4px; font-size:12px; padding:6px;">
           <option value="none">Mitspielen</option>
-          <option value="raus">🚀 Rausgehen (${rausCount + 1}. Mal)</option>
+          <option value="raus">🚀 Rausgehen</option>
         </select>
       `;
     }
@@ -445,13 +465,13 @@ function updateLabels() {
   const sb30 = $('scores30'); sb30.innerHTML = '';
   for (let i = 0; i < aCount; i++) {
     const score = state.thirty.scores[i];
-    const rc = state.thirty.rausCounts[i] || 0;
+    const wasRaus = wasRausLastRound(i);
     const isWinner = score === minScore && score <= 0;
     sb30.innerHTML += `
       <div class="score-card ${isWinner ? 'winner' : ''}">
         <div class="score-name">${getPName('thirty', i)}</div>
         <div class="score-val">${score}</div>
-        <div class="score-sub">${rc > 0 ? '🚀 Raus: ' + rc + '/2' : ''}</div>
+        <div class="score-sub">${wasRaus ? '🚀 Raus (Letzte Rdn)' : ''}</div>
       </div>
     `;
   }
@@ -461,11 +481,11 @@ function updateLabels() {
 
   const tbody30 = $('history30'); tbody30.innerHTML = '';
   state.thirty.history.slice().reverse().forEach(h => {
-    let row = `<tr><td>${h.round}</td><td>${h.trumpfIcon}</td>`;
+    let row = `<tr><td>${h.round}</td><td><span class="suit-label">${SUIT_ICONS[h.suitKey] || ''} ${h.suitName}</span></td>`;
     for (let i = 0; i < aCount; i++) {
       const change = h.changes[i] || 0;
       const isRaus = h.rausFlags && h.rausFlags[i];
-      const changeText = isRaus ? 'RAUS' : (change > 0 ? `+${change}` : `${change}`);
+      const changeText = isRaus ? `RAUS (${change > 0 ? '+' + change : change})` : (change > 0 ? `+${change}` : `${change}`);
       const badgeClass = isRaus ? 'badge-raus' : (change > 0 ? 'badge-neg' : 'badge-pos');
       row += `<td><span class="${badgeClass}">${changeText}</span><br><b>${h.scoresAfter[i]}</b></td>`;
     }
@@ -511,7 +531,6 @@ function bindEvents() {
     const val = parseInt(e.target.value) || 30; state.thirty.startPoints = val;
     if (state.thirty.history.length === 0) {
       state.thirty.scores = [val, val, val, val, val, val];
-      state.thirty.rausCounts = [0,0,0,0,0,0];
     }
     updateLabels(); saveState();
   };
@@ -520,72 +539,53 @@ function bindEvents() {
     const count = state.thirty.count;
     const trumpf = $('aTrumpf').value;
     const factor = trumpf === 'herz' ? 2 : 1;
-    const trumpfIcons = { herz: '♥️ Herz', kreuz: '♣️ Kreuz', schippe: '♠️ Schippe', bollen: '♦️ Bollen' };
+    const suitNames = { eichel: 'Eichel', herz: 'Herz (x2)', laub: 'Laub', schellen: 'Schellen' };
 
     const stichInputs = document.querySelectorAll('.aStichInput');
-    const rausSelects = document.querySelectorAll('.aRausInput');
+    let totalSticheInRound = 0, rawStiche = [], rausFlags = [];
 
-    let totalSticheInRound = 0, rawStiche = [], rausFlags = [], roundRausDeltas = [];
-
-    // 1. Raus-Status erfassen
-    rausSelects.forEach(sel => {
-      const idx = parseInt(sel.getAttribute('data-idx'));
-      if (sel.value === 'raus') {
-        rausFlags[idx] = true;
+    for (let i = 0; i < count; i++) {
+      if (wasRausLastRound(i)) {
+        rausFlags[i] = false;
       } else {
-        rausFlags[idx] = false;
+        const sel = document.querySelector(`.aRausInput[data-idx="${i}"]`);
+        rausFlags[i] = sel ? (sel.value === 'raus') : false;
       }
-    });
+    }
 
-    // REGELEINHALTUNG 1: Bei KREUZ darf niemand rausgehen!
-    if (trumpf === 'kreuz') {
+    if (trumpf === 'eichel') {
       for (let i = 0; i < count; i++) {
         if (rausFlags[i]) {
-          showToast(`⚠️ KREUZ IST PFLICHT! ${getPName('thirty', i)} darf bei Kreuz nicht rausgehen!`, true);
+          showToast(`⚠️ EICHEL IST PFLICHT! ${getPName('thirty', i)} darf bei Eichel nicht rausgehen!`, true);
           return;
         }
       }
     }
 
-    // REGELEINHALTUNG 2: Wer rausgeht, DARF KEINE STICHE MACHEN!
     stichInputs.forEach(inp => {
       const idx = parseInt(inp.getAttribute('data-idx'));
       if (idx < count) {
         const stiche = parseInt(inp.value) || 0;
-        if (rausFlags[idx] && stiche > 0) {
-          showToast(`⚠️ ${getPName('thirty', idx)} ist RAUS und kann keine Stiche (${stiche}) gemacht haben!`, true);
-          return;
-        }
         rawStiche[idx] = stiche;
         totalSticheInRound += stiche;
       }
     });
 
-    // 3. Prüfen ob Gesamtstiche 6 ergeben
     if (totalSticheInRound !== 6) {
-      showToast(`⚠️ Fehler: Die aktiven Spieler müssen zusammen exakt 6 Stiche haben! (Aktuell: ${totalSticheInRound})`, true);
+      showToast(`⚠️ Fehler: Zusammen müssen genau 6 Stiche gemacht werden! (Aktuell: ${totalSticheInRound})`, true);
       return;
     }
 
-    // Raus-Zähler aktualisieren
-    for (let i = 0; i < count; i++) {
-      if (rausFlags[i]) {
-        roundRausDeltas[i] = 1;
-        state.thirty.rausCounts[i] = (state.thirty.rausCounts[i] || 0) + 1;
-      } else {
-        roundRausDeltas[i] = 0;
-      }
-    }
-
-    // Punkte berechnen
     let changes = [];
     for (let i = 0; i < count; i++) {
+      const stiche = rawStiche[i];
       if (rausFlags[i]) {
-        changes[i] = 0; // Wer rausgeht, behält Punkte (kein Abzug, aber auch keine 6 Miese)
+        const deduction = stiche * factor;
+        changes[i] = -deduction; 
+        state.thirty.scores[i] -= deduction;
       } else {
-        const stiche = rawStiche[i];
         if (stiche === 0) {
-          changes[i] = 6; state.thirty.scores[i] += 6; // Kein Stich = 6 Punkte dazu!
+          changes[i] = 6; state.thirty.scores[i] += 6;
         } else {
           const deduction = stiche * factor;
           changes[i] = -deduction; state.thirty.scores[i] -= deduction;
@@ -595,10 +595,10 @@ function bindEvents() {
 
     state.thirty.history.push({
       round: state.thirty.history.length + 1,
-      trumpfIcon: trumpfIcons[trumpf] + (factor === 2 ? ' (x2)' : ''),
+      suitKey: trumpf,
+      suitName: suitNames[trumpf],
       changes: changes,
       rausFlags: rausFlags,
-      roundRausDeltas: roundRausDeltas,
       scoresAfter: [...state.thirty.scores]
     });
 
@@ -610,22 +610,18 @@ function bindEvents() {
     const last = state.thirty.history.pop();
     for (let i = 0; i < state.thirty.count; i++) {
       state.thirty.scores[i] -= (last.changes[i] || 0);
-      if (last.roundRausDeltas && last.roundRausDeltas[i]) {
-        state.thirty.rausCounts[i] = Math.max(0, (state.thirty.rausCounts[i] || 0) - last.roundRausDeltas[i]);
-      }
     }
     updateLabels(); saveState(); showToast('Letzte Runde gelöscht');
   };
 
   $('resetBtn').onclick = () => {
     if (confirm('Neues Spiel starten? Alle Punkte und Namen werden zurückgesetzt.')) {
-      localStorage.removeItem('binokel_v9_kreuz');
+      localStorage.removeItem('binokel_v15_3p');
       state.binokel.players = ['', '', '', '', '', ''];
       state.binokel.scores = [0,0,0,0,0,0]; state.binokel.history = [];
       state.thirty.players = ['', '', '', '', '', ''];
       const sp = state.thirty.startPoints; 
       state.thirty.scores = [sp,sp,sp,sp,sp,sp]; 
-      state.thirty.rausCounts = [0,0,0,0,0,0]; 
       state.thirty.history = [];
       selectedMelds = {}; updateMeldUI(); calculateBinokelTotal(); buildInputs(); updateLabels(); saveState(); showToast('Zurückgesetzt!');
     }
