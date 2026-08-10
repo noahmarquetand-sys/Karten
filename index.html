@@ -13,6 +13,7 @@
   --accent-glow: rgba(56, 189, 248, 0.25);
   --green: #10b981;
   --red: #f43f5e;
+  --yellow: #f59e0b;
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --radius: 16px;
@@ -52,7 +53,7 @@ h1 {
 h2 { font-size: 16px; margin: 0 0 14px 0; text-transform: uppercase; color: var(--accent); }
 .player-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 @media (max-width: 500px) { .player-grid { grid-template-columns: repeat(2, 1fr); } }
-.input-group { display: flex; flex-direction: column; gap: 6px; }
+.input-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
 label { font-size: 12px; color: var(--text-muted); font-weight: 600; }
 input[type="text"], input[type="number"], select {
   width: 100%; padding: 12px 14px; background: #0f172a; border: 1px solid var(--card-border);
@@ -90,12 +91,14 @@ input[type="text"], input[type="number"], select {
 .score-card.winner { border-color: var(--green); box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
 .score-name { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .score-val { font-size: 24px; font-weight: 900; color: #fff; }
+.score-sub { font-size: 10px; color: var(--yellow); margin-top: 2px; font-weight: bold; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: center; }
 th, td { padding: 10px 6px; border-bottom: 1px solid var(--card-border); }
 th { color: var(--text-muted); font-weight: 600; }
-.stich-inputs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-top: 10px; }
+.stich-box { background: #0f172a; border: 1px solid var(--card-border); border-radius: 10px; padding: 10px; margin-bottom: 8px; }
 .badge-neg { color: var(--red); font-weight: bold; }
 .badge-pos { color: var(--green); font-weight: bold; }
+.badge-raus { color: var(--yellow); font-weight: bold; }
 .hidden { display: none !important; }
 .toast {
   position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
@@ -128,7 +131,7 @@ th { color: var(--text-muted); font-weight: 600; }
   <main id="pageBinokel">
     <section class="card">
       <h2>👥 Spieler / Teams Konfiguration</h2>
-      <div class="input-group" style="margin-bottom: 12px;">
+      <div class="input-group">
         <label>Anzahl Teams / Spieler</label>
         <select id="bPlayerCount">
           <option value="2" selected>2 Teams / Parteien</option>
@@ -143,7 +146,7 @@ th { color: var(--text-muted); font-weight: 600; }
 
     <section class="card">
       <h2>➕ Runde Eintragen</h2>
-      <div class="input-group" style="margin-bottom: 12px;">
+      <div class="input-group">
         <label>Wer spielt / meldet?</label>
         <select id="bActivePlayer"></select>
       </div>
@@ -159,7 +162,7 @@ th { color: var(--text-muted); font-weight: 600; }
         </div>
       </div>
 
-      <div class="input-group" style="margin-top: 12px;">
+      <div class="input-group">
         <label>Status / Ausgang</label>
         <select id="bStatus">
           <option value="ok">Normal gespielt</option>
@@ -220,7 +223,7 @@ th { color: var(--text-muted); font-weight: 600; }
     </section>
 
     <section class="card">
-      <h2>➕ Runde Eintragen</h2>
+      <h2>➕ Runde Eintragen (30 ab)</h2>
       <div class="input-group" style="margin-bottom: 12px;">
         <label>Trumpf dieser Runde</label>
         <select id="aTrumpf">
@@ -231,10 +234,10 @@ th { color: var(--text-muted); font-weight: 600; }
         </select>
       </div>
 
-      <label>Gemachte Stiche pro Spieler (Summe MUSS genau 6 sein)</label>
-      <div class="stich-inputs-grid" id="stichInputsContainer"></div>
+      <label>Stiche & Rausgehen pro Spieler (Summe Stiche MUSS 6 sein)</label>
+      <div id="stichInputsContainer"></div>
 
-      <button class="btn-primary" id="save30Round">🎯 Stiche eintragen</button>
+      <button class="btn-primary" id="save30Round">🎯 Runden-Ergebnis eintragen</button>
     </section>
 
     <section class="card">
@@ -243,7 +246,7 @@ th { color: var(--text-muted); font-weight: 600; }
     </section>
 
     <section class="card">
-      <h2>📋 Runden-Verlauf (Punkte) <button class="btn-secondary" id="undo30">↩️ Rückgängig</button></h2>
+      <h2>📋 Runden-Verlauf (30 ab) <button class="btn-secondary" id="undo30">↩️ Rückgängig</button></h2>
       <div style="overflow-x: auto;">
         <table>
           <thead><tr id="aTableHead"><th>#</th><th>Trumpf</th></tr></thead>
@@ -279,15 +282,15 @@ const MELDS_DATA = [
 let state = {
   mode: 'binokel',
   binokel: { count: 2, players: ['', '', '', '', '', ''], scores: [0,0,0,0,0,0], history: [] },
-  thirty: { count: 4, startPoints: 30, players: ['', '', '', '', '', ''], scores: [30,30,30,30,30,30], history: [] }
+  thirty: { count: 4, startPoints: 30, players: ['', '', '', '', '', ''], scores: [30,30,30,30,30,30], rausCounts: [0,0,0,0,0,0], history: [] }
 };
 
 let selectedMelds = {};
 const $ = id => document.getElementById(id);
 
-function saveState() { localStorage.setItem('binokel_v7_final', JSON.stringify(state)); }
+function saveState() { localStorage.setItem('binokel_v8_raus', JSON.stringify(state)); }
 function loadState() {
-  const saved = localStorage.getItem('binokel_v7_final');
+  const saved = localStorage.getItem('binokel_v8_raus');
   if (saved) { try { state = JSON.parse(saved); } catch(e){} }
 }
 
@@ -403,19 +406,54 @@ function updateLabels() {
     row += `</tr>`; tbody.innerHTML += row;
   });
 
-  // 30 ab Labels
+  // 30 ab Labels & Raus-Auswahl
   const aCount = state.thirty.count;
   const stichContainer = $('stichInputsContainer'); stichContainer.innerHTML = '';
   for (let i = 0; i < aCount; i++) {
-    stichContainer.innerHTML += `<div class="input-group"><label>${getPName('thirty', i)}</label><input type="number" class="aStichInput" data-idx="${i}" value="0" min="0" max="6" inputmode="numeric"></div>`;
+    const rausCount = state.thirty.rausCounts[i] || 0;
+    let rausSelectHTML = '';
+    
+    if (rausCount >= 2) {
+      rausSelectHTML = `<div style="color:var(--red); font-size:11px; font-weight:bold; margin-top:4px;">🛑 2x Raus -> Fein bleiben!</div>`;
+    } else {
+      rausSelectHTML = `
+        <select class="aRausInput" data-idx="${i}" style="margin-top:4px; font-size:12px; padding:6px;">
+          <option value="none">Normal (Weiterspielen)</option>
+          <option value="raus">🚀 Rausgehen (${rausCount + 1}. Mal)</option>
+        </select>
+      `;
+    }
+
+    stichContainer.innerHTML += `
+      <div class="stich-box">
+        <label style="color:var(--accent); font-weight:bold;">${getPName('thirty', i)}</label>
+        <div style="display:flex; gap:8px; margin-top:4px; align-items:center;">
+          <div style="flex:1;">
+            <label style="font-size:10px;">Stiche:</label>
+            <input type="number" class="aStichInput" data-idx="${i}" value="0" min="0" max="6" inputmode="numeric">
+          </div>
+          <div style="flex:1.5;">
+            <label style="font-size:10px;">Status nach Trumpf:</label>
+            ${rausSelectHTML}
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   const minScore = Math.min(...state.thirty.scores.slice(0, aCount));
   const sb30 = $('scores30'); sb30.innerHTML = '';
   for (let i = 0; i < aCount; i++) {
     const score = state.thirty.scores[i];
+    const rc = state.thirty.rausCounts[i] || 0;
     const isWinner = score === minScore && score <= 0;
-    sb30.innerHTML += `<div class="score-card ${isWinner ? 'winner' : ''}"><div class="score-name">${getPName('thirty', i)}</div><div class="score-val">${score}</div></div>`;
+    sb30.innerHTML += `
+      <div class="score-card ${isWinner ? 'winner' : ''}">
+        <div class="score-name">${getPName('thirty', i)}</div>
+        <div class="score-val">${score}</div>
+        <div class="score-sub">${rc > 0 ? '🚀 Raus: ' + rc + '/2' : ''}</div>
+      </div>
+    `;
   }
 
   const th30 = $('aTableHead'); th30.innerHTML = `<th>#</th><th>Trumpf</th>`;
@@ -426,8 +464,9 @@ function updateLabels() {
     let row = `<tr><td>${h.round}</td><td>${h.trumpfIcon}</td>`;
     for (let i = 0; i < aCount; i++) {
       const change = h.changes[i] || 0;
-      const changeText = change > 0 ? `+${change}` : `${change}`;
-      const badgeClass = change > 0 ? 'badge-neg' : 'badge-pos';
+      const isRaus = h.rausFlags && h.rausFlags[i];
+      const changeText = isRaus ? 'RAUS' : (change > 0 ? `+${change}` : `${change}`);
+      const badgeClass = isRaus ? 'badge-raus' : (change > 0 ? 'badge-neg' : 'badge-pos');
       row += `<td><span class="${badgeClass}">${changeText}</span><br><b>${h.scoresAfter[i]}</b></td>`;
     }
     row += `</tr>`; tbody30.innerHTML += row;
@@ -470,7 +509,10 @@ function bindEvents() {
 
   $('startPoints30').onchange = (e) => {
     const val = parseInt(e.target.value) || 30; state.thirty.startPoints = val;
-    if (state.thirty.history.length === 0) state.thirty.scores = [val, val, val, val, val, val];
+    if (state.thirty.history.length === 0) {
+      state.thirty.scores = [val, val, val, val, val, val];
+      state.thirty.rausCounts = [0,0,0,0,0,0];
+    }
     updateLabels(); saveState();
   };
 
@@ -480,14 +522,16 @@ function bindEvents() {
     const factor = trumpf === 'herz' ? 2 : 1;
     const trumpfIcons = { herz: '♥️ Herz', kreuz: '♣️ Kreuz', schippe: '♠️ Schippe', bollen: '♦️ Bollen' };
 
-    const inputs = document.querySelectorAll('.aStichInput');
-    let totalSticheInRound = 0, rawStiche = [];
+    const stichInputs = document.querySelectorAll('.aStichInput');
+    const rausSelects = document.querySelectorAll('.aRausInput');
 
-    inputs.forEach(inp => {
+    let totalSticheInRound = 0, rawStiche = [], rausFlags = [], roundRausDeltas = [];
+
+    stichInputs.forEach(inp => {
       const idx = parseInt(inp.getAttribute('data-idx'));
       if (idx < count) {
-        let stiche = parseInt(inp.value) || 0;
-        rawStiche[idx] = stiche; totalSticheInRound += stiche;
+        rawStiche[idx] = parseInt(inp.value) || 0;
+        totalSticheInRound += rawStiche[idx];
       }
     });
 
@@ -496,20 +540,41 @@ function bindEvents() {
       return;
     }
 
+    // Raus-Status prüfen und sammeln
+    rausSelects.forEach(sel => {
+      const idx = parseInt(sel.getAttribute('data-idx'));
+      if (sel.value === 'raus') {
+        rausFlags[idx] = true;
+        roundRausDeltas[idx] = 1;
+        state.thirty.rausCounts[idx] = (state.thirty.rausCounts[idx] || 0) + 1;
+      } else {
+        rausFlags[idx] = false;
+        roundRausDeltas[idx] = 0;
+      }
+    });
+
     let changes = [];
     for (let i = 0; i < count; i++) {
-      const stiche = rawStiche[i];
-      if (stiche === 0) {
-        changes[i] = 6; state.thirty.scores[i] += 6;
+      if (rausFlags[i]) {
+        changes[i] = 0; // Wer rausgeht, kriegt in dieser Runde keine Abzüge, da er gewonnen hat
       } else {
-        const deduction = stiche * factor;
-        changes[i] = -deduction; state.thirty.scores[i] -= deduction;
+        const stiche = rawStiche[i];
+        if (stiche === 0) {
+          changes[i] = 6; state.thirty.scores[i] += 6;
+        } else {
+          const deduction = stiche * factor;
+          changes[i] = -deduction; state.thirty.scores[i] -= deduction;
+        }
       }
     }
 
     state.thirty.history.push({
-      round: state.thirty.history.length + 1, trumpfIcon: trumpfIcons[trumpf] + (factor === 2 ? ' (x2)' : ''),
-      changes: changes, scoresAfter: [...state.thirty.scores]
+      round: state.thirty.history.length + 1,
+      trumpfIcon: trumpfIcons[trumpf] + (factor === 2 ? ' (x2)' : ''),
+      changes: changes,
+      rausFlags: rausFlags,
+      roundRausDeltas: roundRausDeltas,
+      scoresAfter: [...state.thirty.scores]
     });
 
     updateLabels(); saveState(); showToast('Runde eingetragen! ✓');
@@ -518,17 +583,25 @@ function bindEvents() {
   $('undo30').onclick = () => {
     if (state.thirty.history.length === 0) return;
     const last = state.thirty.history.pop();
-    for (let i = 0; i < state.thirty.count; i++) state.thirty.scores[i] -= (last.changes[i] || 0);
+    for (let i = 0; i < state.thirty.count; i++) {
+      state.thirty.scores[i] -= (last.changes[i] || 0);
+      if (last.roundRausDeltas && last.roundRausDeltas[i]) {
+        state.thirty.rausCounts[i] = Math.max(0, (state.thirty.rausCounts[i] || 0) - last.roundRausDeltas[i]);
+      }
+    }
     updateLabels(); saveState(); showToast('Letzte Runde gelöscht');
   };
 
   $('resetBtn').onclick = () => {
     if (confirm('Neues Spiel starten? Alle Punkte und Namen werden zurückgesetzt.')) {
-      localStorage.removeItem('binokel_v7_final');
+      localStorage.removeItem('binokel_v8_raus');
       state.binokel.players = ['', '', '', '', '', ''];
       state.binokel.scores = [0,0,0,0,0,0]; state.binokel.history = [];
       state.thirty.players = ['', '', '', '', '', ''];
-      const sp = state.thirty.startPoints; state.thirty.scores = [sp,sp,sp,sp,sp,sp]; state.thirty.history = [];
+      const sp = state.thirty.startPoints; 
+      state.thirty.scores = [sp,sp,sp,sp,sp,sp]; 
+      state.thirty.rausCounts = [0,0,0,0,0,0]; 
+      state.thirty.history = [];
       selectedMelds = {}; updateMeldUI(); calculateBinokelTotal(); buildInputs(); updateLabels(); saveState(); showToast('Zurückgesetzt!');
     }
   };
