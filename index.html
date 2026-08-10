@@ -228,7 +228,7 @@ th { color: var(--text-muted); font-weight: 600; }
         <label>Trumpf dieser Runde</label>
         <select id="aTrumpf">
           <option value="herz">♥️ Herz (Stiche zählen DOPPELT)</option>
-          <option value="kreuz">♣️ Kreuz (1x)</option>
+          <option value="kreuz">♣️ Kreuz (Pflicht! Niemand darf raus gehen)</option>
           <option value="schippe">♠️ Schippe (1x)</option>
           <option value="bollen">♦️ Bollen (1x)</option>
         </select>
@@ -288,9 +288,9 @@ let state = {
 let selectedMelds = {};
 const $ = id => document.getElementById(id);
 
-function saveState() { localStorage.setItem('binokel_v8_raus', JSON.stringify(state)); }
+function saveState() { localStorage.setItem('binokel_v9_kreuz', JSON.stringify(state)); }
 function loadState() {
-  const saved = localStorage.getItem('binokel_v8_raus');
+  const saved = localStorage.getItem('binokel_v9_kreuz');
   if (saved) { try { state = JSON.parse(saved); } catch(e){} }
 }
 
@@ -299,7 +299,7 @@ function showToast(msg, isError = false) {
   t.textContent = msg;
   if (isError) t.classList.add('error'); else t.classList.remove('error');
   t.style.display = 'block';
-  setTimeout(() => { t.style.display = 'none'; }, 2500);
+  setTimeout(() => { t.style.display = 'none'; }, 3000);
 }
 
 function initMeldButtons() {
@@ -418,7 +418,7 @@ function updateLabels() {
     } else {
       rausSelectHTML = `
         <select class="aRausInput" data-idx="${i}" style="margin-top:4px; font-size:12px; padding:6px;">
-          <option value="none">Normal (Weiterspielen)</option>
+          <option value="none">Mitspielen</option>
           <option value="raus">🚀 Rausgehen (${rausCount + 1}. Mal)</option>
         </select>
       `;
@@ -433,7 +433,7 @@ function updateLabels() {
             <input type="number" class="aStichInput" data-idx="${i}" value="0" min="0" max="6" inputmode="numeric">
           </div>
           <div style="flex:1.5;">
-            <label style="font-size:10px;">Status nach Trumpf:</label>
+            <label style="font-size:10px;">Status:</label>
             ${rausSelectHTML}
           </div>
         </div>
@@ -527,40 +527,65 @@ function bindEvents() {
 
     let totalSticheInRound = 0, rawStiche = [], rausFlags = [], roundRausDeltas = [];
 
-    stichInputs.forEach(inp => {
-      const idx = parseInt(inp.getAttribute('data-idx'));
-      if (idx < count) {
-        rawStiche[idx] = parseInt(inp.value) || 0;
-        totalSticheInRound += rawStiche[idx];
-      }
-    });
-
-    if (totalSticheInRound !== 6) {
-      showToast(`⚠️ Fehler: Insg. müssen es genau 6 Stiche sein! (Aktuell: ${totalSticheInRound})`, true);
-      return;
-    }
-
-    // Raus-Status prüfen und sammeln
+    // 1. Raus-Status erfassen
     rausSelects.forEach(sel => {
       const idx = parseInt(sel.getAttribute('data-idx'));
       if (sel.value === 'raus') {
         rausFlags[idx] = true;
-        roundRausDeltas[idx] = 1;
-        state.thirty.rausCounts[idx] = (state.thirty.rausCounts[idx] || 0) + 1;
       } else {
         rausFlags[idx] = false;
-        roundRausDeltas[idx] = 0;
       }
     });
 
+    // REGELEINHALTUNG 1: Bei KREUZ darf niemand rausgehen!
+    if (trumpf === 'kreuz') {
+      for (let i = 0; i < count; i++) {
+        if (rausFlags[i]) {
+          showToast(`⚠️ KREUZ IST PFLICHT! ${getPName('thirty', i)} darf bei Kreuz nicht rausgehen!`, true);
+          return;
+        }
+      }
+    }
+
+    // REGELEINHALTUNG 2: Wer rausgeht, DARF KEINE STICHE MACHEN!
+    stichInputs.forEach(inp => {
+      const idx = parseInt(inp.getAttribute('data-idx'));
+      if (idx < count) {
+        const stiche = parseInt(inp.value) || 0;
+        if (rausFlags[idx] && stiche > 0) {
+          showToast(`⚠️ ${getPName('thirty', idx)} ist RAUS und kann keine Stiche (${stiche}) gemacht haben!`, true);
+          return;
+        }
+        rawStiche[idx] = stiche;
+        totalSticheInRound += stiche;
+      }
+    });
+
+    // 3. Prüfen ob Gesamtstiche 6 ergeben
+    if (totalSticheInRound !== 6) {
+      showToast(`⚠️ Fehler: Die aktiven Spieler müssen zusammen exakt 6 Stiche haben! (Aktuell: ${totalSticheInRound})`, true);
+      return;
+    }
+
+    // Raus-Zähler aktualisieren
+    for (let i = 0; i < count; i++) {
+      if (rausFlags[i]) {
+        roundRausDeltas[i] = 1;
+        state.thirty.rausCounts[i] = (state.thirty.rausCounts[i] || 0) + 1;
+      } else {
+        roundRausDeltas[i] = 0;
+      }
+    }
+
+    // Punkte berechnen
     let changes = [];
     for (let i = 0; i < count; i++) {
       if (rausFlags[i]) {
-        changes[i] = 0; // Wer rausgeht, kriegt in dieser Runde keine Abzüge, da er gewonnen hat
+        changes[i] = 0; // Wer rausgeht, behält Punkte (kein Abzug, aber auch keine 6 Miese)
       } else {
         const stiche = rawStiche[i];
         if (stiche === 0) {
-          changes[i] = 6; state.thirty.scores[i] += 6;
+          changes[i] = 6; state.thirty.scores[i] += 6; // Kein Stich = 6 Punkte dazu!
         } else {
           const deduction = stiche * factor;
           changes[i] = -deduction; state.thirty.scores[i] -= deduction;
@@ -594,7 +619,7 @@ function bindEvents() {
 
   $('resetBtn').onclick = () => {
     if (confirm('Neues Spiel starten? Alle Punkte und Namen werden zurückgesetzt.')) {
-      localStorage.removeItem('binokel_v8_raus');
+      localStorage.removeItem('binokel_v9_kreuz');
       state.binokel.players = ['', '', '', '', '', ''];
       state.binokel.scores = [0,0,0,0,0,0]; state.binokel.history = [];
       state.thirty.players = ['', '', '', '', '', ''];
