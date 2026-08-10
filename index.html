@@ -17,259 +17,92 @@
   --text-muted: #94a3b8;
   --radius: 16px;
 }
-
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
 body {
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-  background: var(--bg-gradient);
-  color: var(--text-main);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  margin: 0; padding: 0; min-height: 100vh;
+  background: var(--bg-gradient); color: var(--text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   padding-bottom: 40px;
 }
-
-.container {
-  max-width: 750px;
-  margin: 0 auto;
-  padding: 16px;
-}
-
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
+.container { max-width: 750px; margin: 0 auto; padding: 16px; }
+header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .logo { display: flex; align-items: center; gap: 10px; }
 .logo-icon { font-size: 32px; }
-
 h1 {
-  font-size: 22px;
-  margin: 0;
-  font-weight: 800;
+  font-size: 22px; margin: 0; font-weight: 800;
   background: linear-gradient(to right, #38bdf8, #818cf8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
-
 .subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-
 .mode-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 20px;
-  background: rgba(15, 23, 42, 0.6);
-  padding: 6px;
-  border-radius: 14px;
-  border: 1px solid var(--card-border);
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  margin-bottom: 20px; background: rgba(15, 23, 42, 0.6);
+  padding: 6px; border-radius: 14px; border: 1px solid var(--card-border);
 }
-
 .tab-btn {
-  padding: 12px;
-  border: none;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--text-muted);
-  font-weight: 700;
-  font-size: 15px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  padding: 12px; border: none; border-radius: 10px; background: transparent;
+  color: var(--text-muted); font-weight: 700; font-size: 15px; cursor: pointer;
 }
-
-.tab-btn.active {
-  background: var(--accent);
-  color: #0f172a;
-  box-shadow: 0 4px 12px var(--accent-glow);
-}
-
+.tab-btn.active { background: var(--accent); color: #0f172a; box-shadow: 0 4px 12px var(--accent-glow); }
 .card {
-  background: var(--card-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius);
-  padding: 18px;
-  margin-bottom: 16px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  background: var(--card-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border); border-radius: var(--radius); padding: 18px;
+  margin-bottom: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
 }
-
-h2 {
-  font-size: 16px;
-  margin: 0 0 14px 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--accent);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.player-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-@media (max-width: 500px) {
-  .player-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
+h2 { font-size: 16px; margin: 0 0 14px 0; text-transform: uppercase; color: var(--accent); }
+.player-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (max-width: 500px) { .player-grid { grid-template-columns: repeat(2, 1fr); } }
+.input-group { display: flex; flex-direction: column; gap: 6px; }
 label { font-size: 12px; color: var(--text-muted); font-weight: 600; }
-
 input[type="text"], input[type="number"], select {
-  width: 100%;
-  padding: 12px 14px;
-  background: #0f172a;
-  border: 1px solid var(--card-border);
-  border-radius: 10px;
-  color: #fff;
-  font-size: 15px;
-  outline: none;
-  transition: border-color 0.2s;
+  width: 100%; padding: 12px 14px; background: #0f172a; border: 1px solid var(--card-border);
+  border-radius: 10px; color: #fff; font-size: 15px; outline: none;
 }
-
-input:focus, select:focus { border-color: var(--accent); }
-
-.melds-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 8px;
-  margin-top: 10px;
-}
-
+.melds-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-top: 10px; }
 .meld-btn {
-  background: #0f172a;
-  border: 2px solid var(--card-border);
-  border-radius: 12px;
-  padding: 10px;
-  text-align: left;
-  cursor: pointer;
-  color: var(--text-main);
-  transition: all 0.15s ease;
-  position: relative;
-  user-select: none;
+  background: #0f172a; border: 2px solid var(--card-border); border-radius: 12px;
+  padding: 10px; cursor: pointer; color: var(--text-main); position: relative; user-select: none;
 }
-
-.meld-btn.active {
-  border-color: var(--accent);
-  background: rgba(56, 189, 248, 0.15);
-}
-
+.meld-btn.active { border-color: var(--accent); background: rgba(56, 189, 248, 0.15); }
 .meld-name { font-size: 12px; font-weight: 700; display: block; }
 .meld-pts { font-size: 14px; font-weight: 800; color: var(--accent); margin-top: 2px; display: block; }
-
 .meld-count {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background: var(--accent);
-  color: #0f172a;
-  font-weight: 900;
-  font-size: 11px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: absolute; top: 6px; right: 6px; background: var(--accent); color: #0f172a;
+  font-weight: 900; font-size: 11px; width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
 }
-
 .summary-bar {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  background: #0f172a;
-  padding: 12px;
-  border-radius: 12px;
-  margin-top: 14px;
-  text-align: center;
-  border: 1px solid var(--card-border);
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: #0f172a;
+  padding: 12px; border-radius: 12px; margin-top: 14px; text-align: center; border: 1px solid var(--card-border);
 }
-
 .summary-item span { font-size: 11px; color: var(--text-muted); display: block; }
 .summary-item b { font-size: 18px; color: var(--accent); }
 .summary-item.total b { color: var(--green); font-size: 20px; }
-
 .btn-primary {
-  width: 100%;
-  padding: 14px;
-  border: none;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #38bdf8, #2563eb);
-  color: white;
-  font-weight: 800;
-  font-size: 16px;
-  cursor: pointer;
-  margin-top: 14px;
-  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+  width: 100%; padding: 14px; border: none; border-radius: 12px;
+  background: linear-gradient(135deg, #38bdf8, #2563eb); color: white;
+  font-weight: 800; font-size: 16px; cursor: pointer; margin-top: 14px;
 }
-
-.btn-primary:active { transform: scale(0.98); }
 .btn-secondary { background: #334155; color: white; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
 .btn-danger { background: rgba(244, 63, 94, 0.15); color: var(--red); border: 1px solid var(--red); padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
-
-.scoreboard {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 10px;
-}
-
-.score-card {
-  background: #0f172a;
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 12px;
-  text-align: center;
-}
-
-.score-card.winner {
-  border-color: var(--green);
-  box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
-}
-
+.scoreboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; }
+.score-card { background: #0f172a; border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; text-align: center; }
+.score-card.winner { border-color: var(--green); box-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
 .score-name { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .score-val { font-size: 24px; font-weight: 900; color: #fff; }
-
 table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: center; }
 th, td { padding: 10px 6px; border-bottom: 1px solid var(--card-border); }
 th { color: var(--text-muted); font-weight: 600; }
-
-.stich-inputs-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 10px;
-  margin-top: 10px;
-}
-
+.stich-inputs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-top: 10px; }
 .badge-neg { color: var(--red); font-weight: bold; }
 .badge-pos { color: var(--green); font-weight: bold; }
 .hidden { display: none !important; }
-
 .toast {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #f8fafc;
-  color: #0f172a;
-  padding: 10px 20px;
-  border-radius: 30px;
-  font-weight: 800;
-  font-size: 14px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-  display: none;
-  z-index: 100;
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: #f8fafc; color: #0f172a; padding: 12px 24px; border-radius: 30px;
+  font-weight: 800; font-size: 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: none; z-index: 100; text-align: center;
 }
+.toast.error { background: var(--red); color: white; }
 </style>
 </head>
 <body>
@@ -291,6 +124,7 @@ th { color: var(--text-muted); font-weight: 600; }
     <button class="tab-btn" id="tab30">🎯 30 AB</button>
   </div>
 
+  <!-- BINOKEL PAGE -->
   <main id="pageBinokel">
     <section class="card">
       <h2>👥 Spieler Konfiguration</h2>
@@ -355,18 +189,14 @@ th { color: var(--text-muted); font-weight: 600; }
       <h2>📋 Runden-Verlauf <button class="btn-secondary" id="undoBinokel">↩️ Rückgängig</button></h2>
       <div style="overflow-x: auto;">
         <table>
-          <thead>
-            <tr id="bTableHead">
-              <th>#</th>
-              <th>Aktion</th>
-            </tr>
-          </thead>
+          <thead><tr id="bTableHead"><th>#</th><th>Details</th></tr></thead>
           <tbody id="binokelHistory"></tbody>
         </table>
       </div>
     </section>
   </main>
 
+  <!-- 30 AB PAGE -->
   <main id="page30" class="hidden">
     <section class="card">
       <h2>👥 Spieler & Startpunkte</h2>
@@ -395,16 +225,16 @@ th { color: var(--text-muted); font-weight: 600; }
         <label>Trumpf dieser Runde</label>
         <select id="aTrumpf">
           <option value="herz">♥️ Herz (Stiche zählen DOPPELT)</option>
-          <option value="eichel">♣️ Eichel / Kreuz (1x)</option>
-          <option value="laub">♠️ Laub / Grün (1x)</option>
-          <option value="schellen">♦️ Schellen / Eck (1x)</option>
+          <option value="kreuz">♣️ Kreuz (1x)</option>
+          <option value="schippe">♠️ Schippe (1x)</option>
+          <option value="bollen">♦️ Bollen (1x)</option>
         </select>
       </div>
 
-      <label>Gemachte Stiche pro Spieler (0 bis 6 Stiche)</label>
+      <label>Gemachte Stiche pro Spieler (Summe MUSS genau 6 sein)</label>
       <div class="stich-inputs-grid" id="stichInputsContainer"></div>
 
-      <button class="btn-primary" id="save30Round">🎯 Stiche abziehen</button>
+      <button class="btn-primary" id="save30Round">🎯 Stiche eintragen</button>
     </section>
 
     <section class="card">
@@ -416,12 +246,7 @@ th { color: var(--text-muted); font-weight: 600; }
       <h2>📋 Runden-Verlauf (Punkte) <button class="btn-secondary" id="undo30">↩️ Rückgängig</button></h2>
       <div style="overflow-x: auto;">
         <table>
-          <thead>
-            <tr id="aTableHead">
-              <th>#</th>
-              <th>Trumpf</th>
-            </tr>
-          </thead>
+          <thead><tr id="aTableHead"><th>#</th><th>Trumpf</th></tr></thead>
           <tbody id="history30"></tbody>
         </table>
       </div>
@@ -453,35 +278,25 @@ const MELDS_DATA = [
 
 let state = {
   mode: 'binokel',
-  binokel: {
-    count: 4,
-    players: ['Spieler 1', 'Spieler 2', 'Spieler 3', 'Spieler 4', 'Spieler 5', 'Spieler 6'],
-    scores: [0, 0, 0, 0, 0, 0],
-    history: []
-  },
-  thirty: {
-    count: 4,
-    startPoints: 30,
-    players: ['Spieler 1', 'Spieler 2', 'Spieler 3', 'Spieler 4', 'Spieler 5', 'Spieler 6'],
-    scores: [30, 30, 30, 30, 30, 30],
-    history: []
-  }
+  binokel: { count: 4, players: ['Spieler 1', 'Spieler 2', 'Spieler 3', 'Spieler 4', 'Spieler 5', 'Spieler 6'], scores: [0,0,0,0,0,0], history: [] },
+  thirty: { count: 4, startPoints: 30, players: ['Spieler 1', 'Spieler 2', 'Spieler 3', 'Spieler 4', 'Spieler 5', 'Spieler 6'], scores: [30,30,30,30,30,30], history: [] }
 };
 
 let selectedMelds = {};
 const $ = id => document.getElementById(id);
 
-function saveState() { localStorage.setItem('binokel_pro_v2', JSON.stringify(state)); }
+function saveState() { localStorage.setItem('binokel_pro_v4', JSON.stringify(state)); }
 function loadState() {
-  const saved = localStorage.getItem('binokel_pro_v2');
+  const saved = localStorage.getItem('binokel_pro_v4');
   if (saved) { try { state = JSON.parse(saved); } catch(e){} }
 }
 
-function showToast(msg) {
+function showToast(msg, isError = false) {
   const t = $('toast');
   t.textContent = msg;
+  if (isError) t.classList.add('error'); else t.classList.remove('error');
   t.style.display = 'block';
-  setTimeout(() => { t.style.display = 'none'; }, 1500);
+  setTimeout(() => { t.style.display = 'none'; }, 2500);
 }
 
 function initMeldButtons() {
@@ -489,8 +304,7 @@ function initMeldButtons() {
   container.innerHTML = '';
   MELDS_DATA.forEach(m => {
     const btn = document.createElement('div');
-    btn.className = 'meld-btn';
-    btn.id = 'meld_' + m.id;
+    btn.className = 'meld-btn'; btn.id = 'meld_' + m.id;
     btn.onclick = () => toggleMeld(m.id);
     btn.innerHTML = `<span class="meld-name">${m.name}</span><span class="meld-pts">+${m.pts}</span><span class="meld-count hidden" id="count_${m.id}">0</span>`;
     container.appendChild(btn);
@@ -500,8 +314,7 @@ function initMeldButtons() {
 function toggleMeld(id) {
   selectedMelds[id] = (selectedMelds[id] || 0) + 1;
   if (selectedMelds[id] > 3) selectedMelds[id] = 0;
-  updateMeldUI();
-  calculateBinokelTotal();
+  updateMeldUI(); calculateBinokelTotal();
 }
 
 function updateMeldUI() {
@@ -510,12 +323,9 @@ function updateMeldUI() {
     const btn = $('meld_' + m.id);
     const badge = $('count_' + m.id);
     if (count > 0) {
-      btn.classList.add('active');
-      badge.textContent = count > 1 ? count + 'x' : '✓';
-      badge.classList.remove('hidden');
+      btn.classList.add('active'); badge.textContent = count > 1 ? count + 'x' : '✓'; badge.classList.remove('hidden');
     } else {
-      btn.classList.remove('active');
-      badge.classList.add('hidden');
+      btn.classList.remove('active'); badge.classList.add('hidden');
     }
   });
 }
@@ -537,9 +347,7 @@ function calculateBinokelTotal() {
   else if (status === 'ab2') total = -reizVal * 2;
   else total = meldSum + stichVal;
 
-  $('sumMeld').textContent = meldSum;
-  $('sumStich').textContent = stichVal;
-  $('sumTotal').textContent = total;
+  $('sumMeld').textContent = meldSum; $('sumStich').textContent = stichVal; $('sumTotal').textContent = total;
   return total;
 }
 
@@ -547,178 +355,99 @@ function renderBinokel() {
   const count = state.binokel.count;
   $('bPlayerCount').value = count;
 
-  // Render inputs
-  const inputsDiv = $('bPlayerInputs');
-  inputsDiv.innerHTML = '';
+  const inputsDiv = $('bPlayerInputs'); inputsDiv.innerHTML = '';
   for (let i = 0; i < count; i++) {
-    inputsDiv.innerHTML += `
-      <div class="input-group">
-        <label>Spieler ${i+1}</label>
-        <input type="text" id="bp_${i}" value="${state.binokel.players[i]}" oninput="updateBName(${i}, this.value)">
-      </div>`;
+    inputsDiv.innerHTML += `<div class="input-group"><label>Spieler ${i+1}</label><input type="text" value="${state.binokel.players[i]}" oninput="updateBName(${i}, this.value)"></div>`;
   }
 
-  // Active Player Dropdown
-  const select = $('bActivePlayer');
-  select.innerHTML = '';
-  for (let i = 0; i < count; i++) {
-    select.innerHTML += `<option value="${i}">${state.binokel.players[i]}</option>`;
-  }
+  const select = $('bActivePlayer'); select.innerHTML = '';
+  for (let i = 0; i < count; i++) select.innerHTML += `<option value="${i}">${state.binokel.players[i]}</option>`;
 
-  // Scores
-  const sb = $('binokelScores');
-  sb.innerHTML = '';
-  for (let i = 0; i < count; i++) {
-    sb.innerHTML += `
-      <div class="score-card">
-        <div class="score-name">${state.binokel.players[i]}</div>
-        <div class="score-val">${state.binokel.scores[i]}</div>
-      </div>`;
-  }
+  const sb = $('binokelScores'); sb.innerHTML = '';
+  for (let i = 0; i < count; i++) sb.innerHTML += `<div class="score-card"><div class="score-name">${state.binokel.players[i]}</div><div class="score-val">${state.binokel.scores[i]}</div></div>`;
 
-  // Table Header & History
-  const th = $('bTableHead');
-  th.innerHTML = `<th>#</th><th>Details</th>`;
-  for (let i = 0; i < count; i++) {
-    th.innerHTML += `<th>${state.binokel.players[i]}</th>`;
-  }
+  const th = $('bTableHead'); th.innerHTML = `<th>#</th><th>Details</th>`;
+  for (let i = 0; i < count; i++) th.innerHTML += `<th>${state.binokel.players[i]}</th>`;
 
-  const tbody = $('binokelHistory');
-  tbody.innerHTML = '';
+  const tbody = $('binokelHistory'); tbody.innerHTML = '';
   state.binokel.history.slice().reverse().forEach(h => {
     let row = `<tr><td>${h.round}</td><td style="font-size:11px; color:var(--text-muted);">${h.detail}</td>`;
     for (let i = 0; i < count; i++) {
       if (i === h.playerIdx) {
         const badge = h.change < 0 ? 'badge-neg' : 'badge-pos';
         row += `<td class="${badge}">${h.change > 0 ? '+' : ''}${h.change}<br><small>(${h.scoresAfter[i]})</small></td>`;
-      } else {
-        row += `<td style="color:var(--text-muted);">-<br><small>(${h.scoresAfter[i]})</small></td>`;
-      }
+      } else row += `<td style="color:var(--text-muted);">-<br><small>(${h.scoresAfter[i]})</small></td>`;
     }
-    row += `</tr>`;
-    tbody.innerHTML += row;
+    row += `</tr>`; tbody.innerHTML += row;
   });
 }
 
-function updateBName(idx, val) {
-  state.binokel.players[idx] = val.trim() || `Spieler ${idx+1}`;
-  renderBinokel(); saveState();
-}
+function updateBName(idx, val) { state.binokel.players[idx] = val.trim() || `Spieler ${idx+1}`; renderBinokel(); saveState(); }
 
 function render30() {
   const count = state.thirty.count;
   $('aPlayerCount').value = count;
 
-  // Render Inputs
-  const inputsDiv = $('aPlayerInputs');
-  inputsDiv.innerHTML = '';
+  const inputsDiv = $('aPlayerInputs'); inputsDiv.innerHTML = '';
   for (let i = 0; i < count; i++) {
-    inputsDiv.innerHTML += `
-      <div class="input-group">
-        <label>Spieler ${i+1}</label>
-        <input type="text" id="ap_${i}" value="${state.thirty.players[i]}" oninput="updateAName(${i}, this.value)">
-      </div>`;
+    inputsDiv.innerHTML += `<div class="input-group"><label>Spieler ${i+1}</label><input type="text" value="${state.thirty.players[i]}" oninput="updateAName(${i}, this.value)"></div>`;
   }
 
-  // Render Stiche Inputs
-  const stichContainer = $('stichInputsContainer');
-  stichContainer.innerHTML = '';
+  const stichContainer = $('stichInputsContainer'); stichContainer.innerHTML = '';
   for (let i = 0; i < count; i++) {
-    stichContainer.innerHTML += `
-      <div class="input-group">
-        <label>${state.thirty.players[i]}</label>
-        <input type="number" class="aStichInput" data-idx="${i}" value="0" min="0" max="6" inputmode="numeric">
-      </div>`;
+    stichContainer.innerHTML += `<div class="input-group"><label>${state.thirty.players[i]}</label><input type="number" class="aStichInput" data-idx="${i}" value="0" min="0" max="6" inputmode="numeric"></div>`;
   }
 
-  // Scores
   const minScore = Math.min(...state.thirty.scores.slice(0, count));
-  const sb = $('scores30');
-  sb.innerHTML = '';
+  const sb = $('scores30'); sb.innerHTML = '';
   for (let i = 0; i < count; i++) {
     const score = state.thirty.scores[i];
     const isWinner = score === minScore && score <= 0;
-    sb.innerHTML += `
-      <div class="score-card ${isWinner ? 'winner' : ''}">
-        <div class="score-name">${state.thirty.players[i]}</div>
-        <div class="score-val">${score}</div>
-      </div>`;
+    sb.innerHTML += `<div class="score-card ${isWinner ? 'winner' : ''}"><div class="score-name">${state.thirty.players[i]}</div><div class="score-val">${score}</div></div>`;
   }
 
-  // Table Header & History
-  const th = $('aTableHead');
-  th.innerHTML = `<th>#</th><th>Trumpf</th>`;
-  for (let i = 0; i < count; i++) {
-    th.innerHTML += `<th>${state.thirty.players[i]}</th>`;
-  }
+  const th = $('aTableHead'); th.innerHTML = `<th>#</th><th>Trumpf</th>`;
+  for (let i = 0; i < count; i++) th.innerHTML += `<th>${state.thirty.players[i]}</th>`;
 
-  const tbody = $('history30');
-  tbody.innerHTML = '';
+  const tbody = $('history30'); tbody.innerHTML = '';
   state.thirty.history.slice().reverse().forEach(h => {
     let row = `<tr><td>${h.round}</td><td>${h.trumpfIcon}</td>`;
     for (let i = 0; i < count; i++) {
-      const deduction = h.deductions[i] || 0;
-      row += `<td>-${deduction}<br><b>${h.scoresAfter[i]}</b></td>`;
+      const change = h.changes[i] || 0;
+      const changeText = change > 0 ? `+${change}` : `${change}`;
+      const badgeClass = change > 0 ? 'badge-neg' : 'badge-pos';
+      row += `<td><span class="${badgeClass}">${changeText}</span><br><b>${h.scoresAfter[i]}</b></td>`;
     }
-    row += `</tr>`;
-    tbody.innerHTML += row;
+    row += `</tr>`; tbody.innerHTML += row;
   });
 }
 
-function updateAName(idx, val) {
-  state.thirty.players[idx] = val.trim() || `Spieler ${idx+1}`;
-  render30(); saveState();
-}
+function updateAName(idx, val) { state.thirty.players[idx] = val.trim() || `Spieler ${idx+1}`; render30(); saveState(); }
 
 function bindEvents() {
   $('tabBinokel').onclick = () => {
-    state.mode = 'binokel';
-    $('tabBinokel').classList.add('active'); $('tab30').classList.remove('active');
-    $('pageBinokel').classList.remove('hidden'); $('page30').classList.add('hidden');
-    saveState();
+    state.mode = 'binokel'; $('tabBinokel').classList.add('active'); $('tab30').classList.remove('active');
+    $('pageBinokel').classList.remove('hidden'); $('page30').classList.add('hidden'); saveState();
   };
-
   $('tab30').onclick = () => {
-    state.mode = 'thirty';
-    $('tab30').classList.add('active'); $('tabBinokel').classList.remove('active');
-    $('page30').classList.remove('hidden'); $('pageBinokel').classList.add('hidden');
-    saveState();
+    state.mode = 'thirty'; $('tab30').classList.add('active'); $('tabBinokel').classList.remove('active');
+    $('page30').classList.remove('hidden'); $('pageBinokel').classList.add('hidden'); saveState();
   };
 
-  $('bPlayerCount').onchange = (e) => {
-    state.binokel.count = parseInt(e.target.value);
-    renderBinokel(); saveState();
-  };
+  $('bPlayerCount').onchange = (e) => { state.binokel.count = parseInt(e.target.value); renderBinokel(); saveState(); };
+  $('aPlayerCount').onchange = (e) => { state.thirty.count = parseInt(e.target.value); render30(); saveState(); };
 
-  $('aPlayerCount').onchange = (e) => {
-    state.thirty.count = parseInt(e.target.value);
-    render30(); saveState();
-  };
-
-  ['bStiche', 'bReizwert', 'bStatus'].forEach(id => {
-    $(id).oninput = calculateBinokelTotal;
-    $(id).onchange = calculateBinokelTotal;
-  });
+  ['bStiche', 'bReizwert', 'bStatus'].forEach(id => { $(id).oninput = calculateBinokelTotal; $(id).onchange = calculateBinokelTotal; });
 
   $('saveBinokelRound').onclick = () => {
     const playerIdx = parseInt($('bActivePlayer').value);
     const total = calculateBinokelTotal();
     state.binokel.scores[playerIdx] += total;
-
-    const meldSum = getMeldSum();
-    const stichVal = parseInt($('bStiche').value) || 0;
-
     state.binokel.history.push({
-      round: state.binokel.history.length + 1,
-      playerIdx: playerIdx,
-      change: total,
-      detail: `M:${meldSum} S:${stichVal}`,
-      scoresAfter: [...state.binokel.scores]
+      round: state.binokel.history.length + 1, playerIdx: playerIdx, change: total,
+      detail: `M:${getMeldSum()} S:${parseInt($('bStiche').value) || 0}`, scoresAfter: [...state.binokel.scores]
     });
-
-    selectedMelds = {};
-    updateMeldUI();
-    $('bStiche').value = 0; $('bReizwert').value = 0; $('bStatus').value = 'ok';
+    selectedMelds = {}; updateMeldUI(); $('bStiche').value = 0; $('bReizwert').value = 0; $('bStatus').value = 'ok';
     calculateBinokelTotal(); renderBinokel(); saveState(); showToast('Runde gespeichert!');
   };
 
@@ -730,11 +459,8 @@ function bindEvents() {
   };
 
   $('startPoints30').onchange = (e) => {
-    const val = parseInt(e.target.value) || 30;
-    state.thirty.startPoints = val;
-    if (state.thirty.history.length === 0) {
-      state.thirty.scores = [val, val, val, val, val, val];
-    }
+    const val = parseInt(e.target.value) || 30; state.thirty.startPoints = val;
+    if (state.thirty.history.length === 0) state.thirty.scores = [val, val, val, val, val, val];
     render30(); saveState();
   };
 
@@ -742,51 +468,55 @@ function bindEvents() {
     const count = state.thirty.count;
     const trumpf = $('aTrumpf').value;
     const factor = trumpf === 'herz' ? 2 : 1;
-    const trumpfIcons = { herz: '♥️', eichel: '♣️', laub: '♠️', schellen: '♦️' };
+    const trumpfIcons = { herz: '♥️ Herz', kreuz: '♣️ Kreuz', schippe: '♠️ Schippe', bollen: '♦️ Bollen' };
 
     const inputs = document.querySelectorAll('.aStichInput');
-    let deductions = [];
+    let totalSticheInRound = 0, rawStiche = [];
 
     inputs.forEach(inp => {
       const idx = parseInt(inp.getAttribute('data-idx'));
       if (idx < count) {
         let stiche = parseInt(inp.value) || 0;
-        if (stiche > 6) stiche = 6;
-        if (stiche < 0) stiche = 0;
-        const pts = stiche * factor;
-        deductions[idx] = pts;
-        state.thirty.scores[idx] -= pts;
+        rawStiche[idx] = stiche; totalSticheInRound += stiche;
       }
     });
 
+    if (totalSticheInRound !== 6) {
+      showToast(`⚠️ Fehler: Insg. müssen es genau 6 Stiche sein! (Aktuell: ${totalSticheInRound})`, true);
+      return;
+    }
+
+    let changes = [];
+    for (let i = 0; i < count; i++) {
+      const stiche = rawStiche[i];
+      if (stiche === 0) {
+        changes[i] = 6; state.thirty.scores[i] += 6;
+      } else {
+        const deduction = stiche * factor;
+        changes[i] = -deduction; state.thirty.scores[i] -= deduction;
+      }
+    }
+
     state.thirty.history.push({
-      round: state.thirty.history.length + 1,
-      trumpfIcon: trumpfIcons[trumpf] + (factor === 2 ? ' (x2)' : ''),
-      deductions: deductions,
-      scoresAfter: [...state.thirty.scores]
+      round: state.thirty.history.length + 1, trumpfIcon: trumpfIcons[trumpf] + (factor === 2 ? ' (x2)' : ''),
+      changes: changes, scoresAfter: [...state.thirty.scores]
     });
 
-    render30(); saveState(); showToast('Stiche abgezogen! ✓');
+    render30(); saveState(); showToast('Runde eingetragen! ✓');
   };
 
   $('undo30').onclick = () => {
     if (state.thirty.history.length === 0) return;
     const last = state.thirty.history.pop();
-    for (let i = 0; i < state.thirty.count; i++) {
-      state.thirty.scores[i] += (last.deductions[i] || 0);
-    }
+    for (let i = 0; i < state.thirty.count; i++) state.thirty.scores[i] -= (last.changes[i] || 0);
     render30(); saveState(); showToast('Letzte Runde gelöscht');
   };
 
   $('resetBtn').onclick = () => {
     if (confirm('Neues Spiel starten? Alle Punkte werden zurückgesetzt.')) {
-      state.binokel.scores = [0, 0, 0, 0, 0, 0];
-      state.binokel.history = [];
-      const sp = state.thirty.startPoints;
-      state.thirty.scores = [sp, sp, sp, sp, sp, sp];
-      state.thirty.history = [];
-      selectedMelds = {};
-      updateMeldUI(); calculateBinokelTotal(); renderBinokel(); render30(); saveState(); showToast('Zurückgesetzt!');
+      state.binokel.scores = [0,0,0,0,0,0]; state.binokel.history = [];
+      const sp = state.thirty.startPoints; state.thirty.scores = [sp,sp,sp,sp,sp,sp]; state.thirty.history = [];
+      selectedMelds = {}; updateMeldUI(); calculateBinokelTotal(); renderBinokel(); render30(); saveState(); showToast('Zurückgesetzt!');
     }
   };
 }
