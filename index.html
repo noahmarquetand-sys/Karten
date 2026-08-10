@@ -285,9 +285,9 @@ let state = {
 let selectedMelds = {};
 const $ = id => document.getElementById(id);
 
-function saveState() { localStorage.setItem('binokel_v6_fix', JSON.stringify(state)); }
+function saveState() { localStorage.setItem('binokel_v7_final', JSON.stringify(state)); }
 function loadState() {
-  const saved = localStorage.getItem('binokel_v6_fix');
+  const saved = localStorage.getItem('binokel_v7_final');
   if (saved) { try { state = JSON.parse(saved); } catch(e){} }
 }
 
@@ -363,12 +363,12 @@ function getPName(mode, idx) {
 function buildInputs() {
   const bInputsDiv = $('bPlayerInputs'); bInputsDiv.innerHTML = '';
   for (let i = 0; i < state.binokel.count; i++) {
-    bInputsDiv.innerHTML += `<div class="input-group"><label>Team / Spieler ${i+1}</label><input type="text" id="bInp_${i}" value="${state.binokel.players[i] || ''}" placeholder="Team ${i+1}" oninput="onNameChange('binokel', ${i}, this.value)"></div>`;
+    bInputsDiv.innerHTML += `<div class="input-group"><label>Team / Spieler ${i+1}</label><input type="text" id="bInp_${i}" value="${state.binokel.players[i] || ''}" placeholder="Team ${i+1}" onchange="onNameChange('binokel', ${i}, this.value)"></div>`;
   }
 
   const aInputsDiv = $('aPlayerInputs'); aInputsDiv.innerHTML = '';
   for (let i = 0; i < state.thirty.count; i++) {
-    aInputsDiv.innerHTML += `<div class="input-group"><label>Spieler ${i+1}</label><input type="text" id="aInp_${i}" value="${state.thirty.players[i] || ''}" placeholder="Spieler ${i+1}" oninput="onNameChange('thirty', ${i}, this.value)"></div>`;
+    aInputsDiv.innerHTML += `<div class="input-group"><label>Spieler ${i+1}</label><input type="text" id="aInp_${i}" value="${state.thirty.players[i] || ''}" placeholder="Spieler ${i+1}" onchange="onNameChange('thirty', ${i}, this.value)"></div>`;
   }
 }
 
@@ -447,7 +447,7 @@ function bindEvents() {
   $('bPlayerCount').onchange = (e) => { state.binokel.count = parseInt(e.target.value); buildInputs(); updateLabels(); saveState(); };
   $('aPlayerCount').onchange = (e) => { state.thirty.count = parseInt(e.target.value); buildInputs(); updateLabels(); saveState(); };
 
-  ['bStiche', 'bReizwert', 'bStatus'].forEach(id => { $(id).oninput = calculateBinokelTotal; $(id).onchange = calculateBinokelTotal; });
+  ['bStiche', 'bReizwert', 'bStatus'].forEach(id => { $(id).onchange = calculateBinokelTotal; });
 
   $('saveBinokelRound').onclick = () => {
     const playerIdx = parseInt($('bActivePlayer').value);
@@ -524,7 +524,7 @@ function bindEvents() {
 
   $('resetBtn').onclick = () => {
     if (confirm('Neues Spiel starten? Alle Punkte und Namen werden zurückgesetzt.')) {
-      localStorage.removeItem('binokel_v6_fix');
+      localStorage.removeItem('binokel_v7_final');
       state.binokel.players = ['', '', '', '', '', ''];
       state.binokel.scores = [0,0,0,0,0,0]; state.binokel.history = [];
       state.thirty.players = ['', '', '', '', '', ''];
