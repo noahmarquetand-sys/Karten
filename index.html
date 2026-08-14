@@ -170,8 +170,7 @@ th { color: var(--text-muted); font-weight: 600; }
         <label>Status / Spielausgang</label>
         <select id="bStatus">
           <option value="ok">Normal gespielt</option>
-          <option value="ab">Direkt abgegangen (Einfache Miese)</option>
-          <option value="ab2">Abgegangen / Passen (Doppelte Miese)</option>
+          <option value="ab">Abgegangen / Passen (Einfache Miese)</option>
         </select>
       </div>
 
@@ -307,9 +306,9 @@ let state = {
 let selectedMelds = {};
 const $ = id => document.getElementById(id);
 
-function saveState() { localStorage.setItem('binokel_v20_reiz_check', JSON.stringify(state)); }
+function saveState() { localStorage.setItem('binokel_v21_clean_status', JSON.stringify(state)); }
 function loadState() {
-  const saved = localStorage.getItem('binokel_v20_reiz_check');
+  const saved = localStorage.getItem('binokel_v21_clean_status');
   if (saved) { try { state = JSON.parse(saved); } catch(e){} }
 }
 
@@ -369,14 +368,13 @@ function calculateBinokelTotal() {
   let isFailed = false;
 
   if (status === 'ab') {
+    // Vor Spielbeginn abgegangen -> Einfache Miese (Reizwert)
     total = -reizVal;
-  } else if (status === 'ab2') {
-    total = -reizVal * 2;
   } else {
+    // Normal gespielt -> Prüfung ob (Meldung + Stiche) gereizten Wert erreicht!
     const erreicht = meldSum + stichVal;
-    // PRÜFUNG: Reizwert erreicht?
     if (erreicht < reizVal || (stichVal === 0 && meldSum > 0)) {
-      total = -reizVal * 2; // Überreizt / Spiel nicht gemacht -> Doppelte Miese!
+      total = -reizVal * 2; // Nicht geschafft / Überreizt -> Doppelte Miese!
       isFailed = true;
     } else {
       total = erreicht;
@@ -393,7 +391,7 @@ function calculateBinokelTotal() {
     sumTotalItem.classList.remove('failed');
   }
 
-  return { total, isFailed, meldSum, stichVal, reizVal };
+  return { total, isFailed, meldSum, stichVal, reizVal, status };
 }
 
 function getPName(mode, idx) {
@@ -567,10 +565,15 @@ function bindEvents() {
     
     state.binokel.scores[playerIdx] += res.total;
     
-    let detailStr = `Gereizt: ${res.reizVal} | M:${res.meldSum} S:${res.stichVal}`;
-    if (res.isFailed) {
-      detailStr += ` 💥 (Überreizt!)`;
-      showToast(`💥 Überreizt! ${getPName('binokel', playerIdx)} hat das Gereizte (${res.reizVal}) nicht erreicht und bekommt Miese!`, true);
+    let detailStr = '';
+    if (res.status === 'ab') {
+      detailStr = `Abgegangen auf ${res.reizVal}`;
+    } else {
+      detailStr = `Gereizt: ${res.reizVal} | M:${res.meldSum} S:${res.stichVal}`;
+      if (res.isFailed) {
+        detailStr += ` 💥 (Nicht geschafft!)`;
+        showToast(`💥 Nicht geschafft! ${getPName('binokel', playerIdx)} erreicht gereizte ${res.reizVal} Punkte nicht -> Doppelte Miese (${res.total})!`, true);
+      }
     }
 
     state.binokel.history.push({
@@ -695,7 +698,7 @@ function bindEvents() {
 
   $('resetBtn').onclick = () => {
     if (confirm('Neues Spiel starten? Alle Punkte und Namen werden zurückgesetzt.')) {
-      localStorage.removeItem('binokel_v20_reiz_check');
+      localStorage.removeItem('binokel_v21_clean_status');
       state.binokel.players = ['', '', '', ''];
       state.binokel.scores = [0,0,0,0]; state.binokel.history = [];
       state.thirty.players = ['', '', '', ''];
