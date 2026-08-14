@@ -51,8 +51,7 @@ h1 {
   margin-bottom: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
 }
 h2 { font-size: 16px; margin: 0 0 14px 0; text-transform: uppercase; color: var(--accent); }
-.player-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-@media (max-width: 500px) { .player-grid { grid-template-columns: repeat(2, 1fr); } }
+.player-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 .input-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
 label { font-size: 12px; color: var(--text-muted); font-weight: 600; }
 input[type="text"], input[type="number"], select {
@@ -139,11 +138,10 @@ th { color: var(--text-muted); font-weight: 600; }
     <section class="card">
       <h2>👥 Spieler / Teams Konfiguration</h2>
       <div class="input-group">
-        <label>Spielform / Modi</label>
+        <label>Spielform</label>
         <select id="bPlayerCount">
           <option value="3" selected>3 Einzelspieler (Jeder gegen Jeden)</option>
-          <option value="2">4 Personen (2 gegen 2 Teams)</option>
-          <option value="2_6">6 Personen (3 gegen 3 Teams)</option>
+          <option value="2">4 Personen (2er Teams)</option>
         </select>
       </div>
       <div class="player-grid" id="bPlayerInputs"></div>
@@ -210,11 +208,10 @@ th { color: var(--text-muted); font-weight: 600; }
       <h2>👥 Spieler & Startpunkte</h2>
       <div class="player-grid" style="margin-bottom: 12px;">
         <div class="input-group">
-          <label>Spielform / Modi</label>
+          <label>Spielform</label>
           <select id="aPlayerCount">
             <option value="3" selected>3 Einzelspieler</option>
-            <option value="4">4 Einzelspieler / Teams</option>
-            <option value="6">6 Einzelspieler / Teams</option>
+            <option value="2_team">4 Personen (2er Teams)</option>
           </select>
         </div>
         <div class="input-group">
@@ -227,17 +224,28 @@ th { color: var(--text-muted); font-weight: 600; }
 
     <section class="card">
       <h2>➕ Runde Eintragen (30 ab)</h2>
-      <div class="input-group" style="margin-bottom: 12px;">
-        <label>Trumpf dieser Runde</label>
-        <select id="aTrumpf">
-          <option value="eichel">Eichel (Pflicht! Niemand darf raus gehen)</option>
-          <option value="herz">♥️ Herz (Stiche zählen DOPPELT)</option>
-          <option value="laub">🍃 Laub (1x)</option>
-          <option value="schellen">🔔 Schellen / Bollen (1x)</option>
-        </select>
+      <div class="player-grid" style="margin-bottom: 8px;">
+        <div class="input-group">
+          <label>Trumpf dieser Runde</label>
+          <select id="aTrumpf">
+            <option value="eichel">Eichel (Pflicht! Niemand darf raus gehen)</option>
+            <option value="herz">♥️ Herz (Stiche zählen DOPPELT)</option>
+            <option value="laub">🍃 Laub (1x)</option>
+            <option value="schellen">🔔 Schellen / Bollen (1x)</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Wer hat angesagt?</label>
+          <select id="aAnsager"></select>
+        </div>
       </div>
 
-      <label>Stiche & Rausgehen pro Spieler (Summe Stiche MUSS 6 sein)</label>
+      <div class="input-group" style="margin-bottom: 12px;">
+        <label>Angesagte Stiche des Ansagers</label>
+        <input type="number" id="aTargetStiche" value="1" min="1" max="6" inputmode="numeric">
+      </div>
+
+      <label>Stiche & Rausgehen pro Partei (Summe Stiche MUSS 6 sein)</label>
       <div id="stichInputsContainer"></div>
 
       <button class="btn-primary" id="save30Round">🎯 Runden-Ergebnis eintragen</button>
@@ -291,16 +299,16 @@ const MELDS_DATA = [
 
 let state = {
   mode: 'binokel',
-  binokel: { count: 3, players: ['', '', '', '', '', ''], scores: [0,0,0,0,0,0], history: [] },
-  thirty: { count: 3, startPoints: 30, players: ['', '', '', '', '', ''], scores: [30,30,30,30,30,30], history: [] }
+  binokel: { count: 3, players: ['', '', ''], scores: [0,0,0], history: [] },
+  thirty: { mode: '3', count: 3, startPoints: 30, players: ['', '', ''], scores: [30,30,30], history: [] }
 };
 
 let selectedMelds = {};
 const $ = id => document.getElementById(id);
 
-function saveState() { localStorage.setItem('binokel_v16_teams', JSON.stringify(state)); }
+function saveState() { localStorage.setItem('binokel_v17_ansagen', JSON.stringify(state)); }
 function loadState() {
-  const saved = localStorage.getItem('binokel_v16_teams');
+  const saved = localStorage.getItem('binokel_v17_ansagen');
   if (saved) { try { state = JSON.parse(saved); } catch(e){} }
 }
 
@@ -372,11 +380,9 @@ function getPName(mode, idx) {
   if (name && name.trim() !== '') return name;
   
   if (mode === 'binokel') {
-    if (state.binokel.count === 3) return `Spieler ${idx+1}`;
-    if (state.binokel.count === 2) return `Team ${idx+1} (2p)`;
-    return `Team ${idx+1} (3p)`;
+    return state.binokel.count === 3 ? `Spieler ${idx+1}` : `Team ${idx+1}`;
   } else {
-    return `Spieler ${idx+1}`;
+    return state.thirty.mode === '3' ? `Spieler ${idx+1}` : `Team ${idx+1}`;
   }
 }
 
@@ -389,7 +395,8 @@ function buildInputs() {
 
   const aInputsDiv = $('aPlayerInputs'); aInputsDiv.innerHTML = '';
   for (let i = 0; i < state.thirty.count; i++) {
-    aInputsDiv.innerHTML += `<div class="input-group"><label>Spieler ${i+1}</label><input type="text" id="aInp_${i}" value="${state.thirty.players[i] || ''}" placeholder="Spieler ${i+1}" onchange="onNameChange('thirty', ${i}, this.value)"></div>`;
+    const defaultPlaceholder = state.thirty.mode === '3' ? `Spieler ${i+1}` : `Team ${i+1}`;
+    aInputsDiv.innerHTML += `<div class="input-group"><label>${defaultPlaceholder}</label><input type="text" id="aInp_${i}" value="${state.thirty.players[i] || ''}" placeholder="${defaultPlaceholder}" onchange="onNameChange('thirty', ${i}, this.value)"></div>`;
   }
 }
 
@@ -400,10 +407,18 @@ function onNameChange(mode, idx, val) {
   updateLabels();
 }
 
-function wasRausLastRound(playerIdx) {
-  if (state.thirty.history.length === 0) return false;
-  const lastRound = state.thirty.history[state.thirty.history.length - 1];
-  return !!(lastRound.rausFlags && lastRound.rausFlags[playerIdx]);
+// Ermittelt, wie viele Runden in Folge ein Spieler/Team NACHEINANDER rausgegangen ist
+function getConsecutiveRausCount(playerIdx) {
+  let count = 0;
+  for (let i = state.thirty.history.length - 1; i >= 0; i--) {
+    const round = state.thirty.history[i];
+    if (round.rausFlags && round.rausFlags[playerIdx]) {
+      count++;
+    } else {
+      break;
+    }
+  }
+  return count;
 }
 
 function updateLabels() {
@@ -430,20 +445,24 @@ function updateLabels() {
     row += `</tr>`; tbody.innerHTML += row;
   });
 
-  // 30 ab Labels & Raus-Auswahl
+  // 30 ab Labels & Ansager-Dropdown
   const aCount = state.thirty.count;
+  const ansagerSelect = $('aAnsager'); ansagerSelect.innerHTML = '';
+  for (let i = 0; i < aCount; i++) ansagerSelect.innerHTML += `<option value="${i}">${getPName('thirty', i)}</option>`;
+
   const stichContainer = $('stichInputsContainer'); stichContainer.innerHTML = '';
   for (let i = 0; i < aCount; i++) {
-    const isSperre = wasRausLastRound(i);
+    const consecRaus = getConsecutiveRausCount(i);
     let rausSelectHTML = '';
     
-    if (isSperre) {
-      rausSelectHTML = `<div style="color:var(--red); font-size:11px; font-weight:bold; margin-top:4px;">🛑 Letzte Runde Raus -> Fein bleiben!</div>`;
+    if (consecRaus >= 2) {
+      rausSelectHTML = `<div style="color:var(--red); font-size:11px; font-weight:bold; margin-top:4px;">🛑 2x in Folge Raus -> Fein bleiben!</div>`;
     } else {
+      const rausLabel = consecRaus === 1 ? '🚀 Rausgehen (2. Mal)' : '🚀 Rausgehen (1. Mal)';
       rausSelectHTML = `
         <select class="aRausInput" data-idx="${i}" style="margin-top:4px; font-size:12px; padding:6px;">
           <option value="none">Mitspielen</option>
-          <option value="raus">🚀 Rausgehen</option>
+          <option value="raus">${rausLabel}</option>
         </select>
       `;
     }
@@ -469,23 +488,23 @@ function updateLabels() {
   const sb30 = $('scores30'); sb30.innerHTML = '';
   for (let i = 0; i < aCount; i++) {
     const score = state.thirty.scores[i];
-    const wasRaus = wasRausLastRound(i);
+    const consecRaus = getConsecutiveRausCount(i);
     const isWinner = score === minScore && score <= 0;
     sb30.innerHTML += `
       <div class="score-card ${isWinner ? 'winner' : ''}">
         <div class="score-name">${getPName('thirty', i)}</div>
         <div class="score-val">${score}</div>
-        <div class="score-sub">${wasRaus ? '🚀 Raus (Letzte Rdn)' : ''}</div>
+        <div class="score-sub">${consecRaus > 0 ? '🚀 Raus: ' + consecRaus + '/2 in Folge' : ''}</div>
       </div>
     `;
   }
 
-  const th30 = $('aTableHead'); th30.innerHTML = `<th>#</th><th>Trumpf</th>`;
+  const th30 = $('aTableHead'); th30.innerHTML = `<th>#</th><th>Trumpf / Ansager</th>`;
   for (let i = 0; i < aCount; i++) th30.innerHTML += `<th>${getPName('thirty', i)}</th>`;
 
   const tbody30 = $('history30'); tbody30.innerHTML = '';
   state.thirty.history.slice().reverse().forEach(h => {
-    let row = `<tr><td>${h.round}</td><td><span class="suit-label">${SUIT_ICONS[h.suitKey] || ''} ${h.suitName}</span></td>`;
+    let row = `<tr><td>${h.round}</td><td><span class="suit-label">${SUIT_ICONS[h.suitKey] || ''} ${h.suitName}</span><br><small style="color:var(--accent);">Ansage: ${getPName('thirty', h.ansagerIdx)} (${h.targetStiche})</small></td>`;
     for (let i = 0; i < aCount; i++) {
       const change = h.changes[i] || 0;
       const isRaus = h.rausFlags && h.rausFlags[i];
@@ -508,11 +527,12 @@ function bindEvents() {
   };
 
   $('bPlayerCount').onchange = (e) => { 
-    state.binokel.count = e.target.value === '2_6' ? 2 : parseInt(e.target.value); 
+    state.binokel.count = parseInt(e.target.value); 
     buildInputs(); updateLabels(); saveState(); 
   };
   $('aPlayerCount').onchange = (e) => { 
-    state.thirty.count = parseInt(e.target.value); 
+    state.thirty.mode = e.target.value;
+    state.thirty.count = e.target.value === '3' ? 3 : 2; 
     buildInputs(); updateLabels(); saveState(); 
   };
 
@@ -540,7 +560,7 @@ function bindEvents() {
   $('startPoints30').onchange = (e) => {
     const val = parseInt(e.target.value) || 30; state.thirty.startPoints = val;
     if (state.thirty.history.length === 0) {
-      state.thirty.scores = [val, val, val, val, val, val];
+      state.thirty.scores = state.thirty.count === 3 ? [val, val, val] : [val, val];
     }
     updateLabels(); saveState();
   };
@@ -548,21 +568,25 @@ function bindEvents() {
   $('save30Round').onclick = () => {
     const count = state.thirty.count;
     const trumpf = $('aTrumpf').value;
+    const ansagerIdx = parseInt($('aAnsager').value);
+    const targetStiche = parseInt($('aTargetStiche').value) || 1;
     const factor = trumpf === 'herz' ? 2 : 1;
     const suitNames = { eichel: 'Eichel', herz: 'Herz (x2)', laub: 'Laub', schellen: 'Schellen' };
 
     const stichInputs = document.querySelectorAll('.aStichInput');
     let totalSticheInRound = 0, rawStiche = [], rausFlags = [];
 
+    // 1. Raus-Status erfassen
     for (let i = 0; i < count; i++) {
-      if (wasRausLastRound(i)) {
-        rausFlags[i] = false;
+      if (getConsecutiveRausCount(i) >= 2) {
+        rausFlags[i] = false; // Sperre: Darf nicht ein 3. Mal in Folge raus!
       } else {
         const sel = document.querySelector(`.aRausInput[data-idx="${i}"]`);
         rausFlags[i] = sel ? (sel.value === 'raus') : false;
       }
     }
 
+    // 2. EICHEL-Prüfung (Pflichtspiel)
     if (trumpf === 'eichel') {
       for (let i = 0; i < count; i++) {
         if (rausFlags[i]) {
@@ -572,6 +596,7 @@ function bindEvents() {
       }
     }
 
+    // 3. Stiche erfassen
     stichInputs.forEach(inp => {
       const idx = parseInt(inp.getAttribute('data-idx'));
       if (idx < count) {
@@ -586,27 +611,39 @@ function bindEvents() {
       return;
     }
 
+    // 4. Punkte & Ansage-Wertung berechnen
     let changes = [];
     for (let i = 0; i < count; i++) {
       const stiche = rawStiche[i];
-      if (rausFlags[i]) {
-        const deduction = stiche * factor;
-        changes[i] = -deduction; 
-        state.thirty.scores[i] -= deduction;
-      } else {
-        if (stiche === 0) {
-          changes[i] = 6; state.thirty.scores[i] += 6;
+
+      if (i === ansagerIdx) {
+        // Der Ansager muss seine angesagte Stiche-Anzahl erreichen
+        if (stiche < targetStiche) {
+          changes[i] = 6; // Angesagte Stiche nicht geschafft -> +6 Miese nach oben!
+          showToast(`💥 ${getPName('thirty', i)} hat die angesagten ${targetStiche} Stiche nicht geschafft (+6 Miese)!`, true);
         } else {
-          const deduction = stiche * factor;
-          changes[i] = -deduction; state.thirty.scores[i] -= deduction;
+          changes[i] = -(stiche * factor); // Geschafft -> Stiche abziehen
+        }
+      } else {
+        if (rausFlags[i]) {
+          changes[i] = -(stiche * factor);
+        } else {
+          if (stiche === 0) {
+            changes[i] = 6; // Kein Stich gemacht -> 6 Miese!
+          } else {
+            changes[i] = -(stiche * factor);
+          }
         }
       }
+      state.thirty.scores[i] += changes[i];
     }
 
     state.thirty.history.push({
       round: state.thirty.history.length + 1,
       suitKey: trumpf,
       suitName: suitNames[trumpf],
+      ansagerIdx: ansagerIdx,
+      targetStiche: targetStiche,
       changes: changes,
       rausFlags: rausFlags,
       scoresAfter: [...state.thirty.scores]
@@ -626,12 +663,12 @@ function bindEvents() {
 
   $('resetBtn').onclick = () => {
     if (confirm('Neues Spiel starten? Alle Punkte und Namen werden zurückgesetzt.')) {
-      localStorage.removeItem('binokel_v16_teams');
-      state.binokel.players = ['', '', '', '', '', ''];
-      state.binokel.scores = [0,0,0,0,0,0]; state.binokel.history = [];
-      state.thirty.players = ['', '', '', '', '', ''];
+      localStorage.removeItem('binokel_v17_ansagen');
+      state.binokel.players = ['', '', ''];
+      state.binokel.scores = [0,0,0]; state.binokel.history = [];
+      state.thirty.players = ['', '', ''];
       const sp = state.thirty.startPoints; 
-      state.thirty.scores = [sp,sp,sp,sp,sp,sp]; 
+      state.thirty.scores = [sp,sp,sp]; 
       state.thirty.history = [];
       selectedMelds = {}; updateMeldUI(); calculateBinokelTotal(); buildInputs(); updateLabels(); saveState(); showToast('Zurückgesetzt!');
     }
@@ -640,8 +677,8 @@ function bindEvents() {
 
 window.onload = () => {
   loadState(); initMeldButtons(); bindEvents();
-  $('bPlayerCount').value = state.binokel.count === 3 ? "3" : "2";
-  $('aPlayerCount').value = state.thirty.count;
+  $('bPlayerCount').value = state.binokel.count === 2 ? "2" : "3";
+  $('aPlayerCount').value = state.thirty.mode || "3";
   $('startPoints30').value = state.thirty.startPoints || 30;
   buildInputs();
   updateLabels();
