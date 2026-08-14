@@ -78,6 +78,7 @@ input[type="text"], input[type="number"], select {
 .summary-item span { font-size: 11px; color: var(--text-muted); display: block; }
 .summary-item b { font-size: 18px; color: var(--accent); }
 .summary-item.total b { color: var(--green); font-size: 20px; }
+.summary-item.total.failed b { color: var(--red); }
 .btn-primary {
   width: 100%; padding: 14px; border: none; border-radius: 12px;
   background: linear-gradient(135deg, #38bdf8, #2563eb); color: white;
@@ -150,37 +151,37 @@ th { color: var(--text-muted); font-weight: 600; }
     <section class="card">
       <h2>➕ Runde Eintragen</h2>
       <div class="input-group">
-        <label>Wer spielt / meldet?</label>
+        <label>Wer hat gereizt / spielt?</label>
         <select id="bActivePlayer"></select>
       </div>
 
       <div class="player-grid">
         <div class="input-group">
-          <label>Stichpunkte / Augen</label>
-          <input type="number" id="bStiche" value="0" min="0" step="10" inputmode="numeric">
+          <label>1. Gereizt auf (Reizwert)</label>
+          <input type="number" id="bReizwert" value="0" min="0" step="10" inputmode="numeric">
         </div>
         <div class="input-group">
-          <label>Gereizt auf (Reizwert)</label>
-          <input type="number" id="bReizwert" value="0" min="0" step="10" inputmode="numeric">
+          <label>3. Stichpunkte / Augen</label>
+          <input type="number" id="bStiche" value="0" min="0" step="10" inputmode="numeric">
         </div>
       </div>
 
       <div class="input-group">
-        <label>Status / Ausgang</label>
+        <label>Status / Spielausgang</label>
         <select id="bStatus">
           <option value="ok">Normal gespielt</option>
-          <option value="ab">Abgegangen / Passen (Einfache Miese)</option>
-          <option value="ab2">Abgegangen (Doppelte Miese)</option>
+          <option value="ab">Direkt abgegangen (Einfache Miese)</option>
+          <option value="ab2">Abgegangen / Passen (Doppelte Miese)</option>
         </select>
       </div>
 
-      <h3 style="font-size: 13px; color: var(--text-muted); margin: 16px 0 8px 0; text-transform: uppercase;">Was wurde gemeldet? (Antippen)</h3>
+      <h3 style="font-size: 13px; color: var(--text-muted); margin: 16px 0 8px 0; text-transform: uppercase;">2. Was wurde gemeldet? (Antippen)</h3>
       <div class="melds-grid" id="meldsContainer"></div>
 
       <div class="summary-bar">
         <div class="summary-item"><span>Meldung</span><b id="sumMeld">0</b></div>
         <div class="summary-item"><span>Stiche</span><b id="sumStich">0</b></div>
-        <div class="summary-item total"><span>Gesamt</span><b id="sumTotal">0</b></div>
+        <div class="summary-item total" id="sumTotalItem"><span>Ergebnis</span><b id="sumTotal">0</b></div>
       </div>
 
       <button class="btn-primary" id="saveBinokelRound">💾 Runde Speichern</button>
@@ -306,9 +307,9 @@ let state = {
 let selectedMelds = {};
 const $ = id => document.getElementById(id);
 
-function saveState() { localStorage.setItem('binokel_v19_fixed_miese', JSON.stringify(state)); }
+function saveState() { localStorage.setItem('binokel_v20_reiz_check', JSON.stringify(state)); }
 function loadState() {
-  const saved = localStorage.getItem('binokel_v19_fixed_miese');
+  const saved = localStorage.getItem('binokel_v20_reiz_check');
   if (saved) { try { state = JSON.parse(saved); } catch(e){} }
 }
 
@@ -362,17 +363,37 @@ function calculateBinokelTotal() {
   const stichVal = parseInt($('bStiche').value) || 0;
   const reizVal = parseInt($('bReizwert').value) || 0;
   const status = $('bStatus').value;
+  const sumTotalItem = $('sumTotalItem');
 
   let total = 0;
-  if (status === 'ab') total = -reizVal;
-  else if (status === 'ab2') total = -reizVal * 2;
-  else {
-    if (stichVal === 0 && meldSum > 0) total = 0;
-    else total = meldSum + stichVal;
+  let isFailed = false;
+
+  if (status === 'ab') {
+    total = -reizVal;
+  } else if (status === 'ab2') {
+    total = -reizVal * 2;
+  } else {
+    const erreicht = meldSum + stichVal;
+    // PRÜFUNG: Reizwert erreicht?
+    if (erreicht < reizVal || (stichVal === 0 && meldSum > 0)) {
+      total = -reizVal * 2; // Überreizt / Spiel nicht gemacht -> Doppelte Miese!
+      isFailed = true;
+    } else {
+      total = erreicht;
+    }
   }
 
-  $('sumMeld').textContent = meldSum; $('sumStich').textContent = stichVal; $('sumTotal').textContent = total;
-  return total;
+  $('sumMeld').textContent = meldSum; 
+  $('sumStich').textContent = stichVal; 
+  $('sumTotal').textContent = total > 0 ? '+' + total : total;
+
+  if (isFailed) {
+    sumTotalItem.classList.add('failed');
+  } else {
+    sumTotalItem.classList.remove('failed');
+  }
+
+  return { total, isFailed, meldSum, stichVal, reizVal };
 }
 
 function getPName(mode, idx) {
@@ -542,12 +563,21 @@ function bindEvents() {
 
   $('saveBinokelRound').onclick = () => {
     const playerIdx = parseInt($('bActivePlayer').value);
-    const total = calculateBinokelTotal();
-    state.binokel.scores[playerIdx] += total;
+    const res = calculateBinokelTotal();
+    
+    state.binokel.scores[playerIdx] += res.total;
+    
+    let detailStr = `Gereizt: ${res.reizVal} | M:${res.meldSum} S:${res.stichVal}`;
+    if (res.isFailed) {
+      detailStr += ` 💥 (Überreizt!)`;
+      showToast(`💥 Überreizt! ${getPName('binokel', playerIdx)} hat das Gereizte (${res.reizVal}) nicht erreicht und bekommt Miese!`, true);
+    }
+
     state.binokel.history.push({
-      round: state.binokel.history.length + 1, playerIdx: playerIdx, change: total,
-      detail: `M:${getMeldSum()} S:${parseInt($('bStiche').value) || 0}`, scoresAfter: [...state.binokel.scores]
+      round: state.binokel.history.length + 1, playerIdx: playerIdx, change: res.total,
+      detail: detailStr, scoresAfter: [...state.binokel.scores]
     });
+
     selectedMelds = {}; updateMeldUI(); $('bStiche').value = 0; $('bReizwert').value = 0; $('bStatus').value = 'ok';
     calculateBinokelTotal(); updateLabels(); saveState(); showToast('Runde gespeichert!');
   };
@@ -619,21 +649,19 @@ function bindEvents() {
       const stiche = rawStiche[i];
 
       if (i === ansagerIdx) {
-        // DER ANSAGER: Wenn er seine Ansage NICHT erreicht, geht er pauschal (Ansage + 6) HOCH!
         if (stiche < targetStiche) {
           const penalty = targetStiche + 6;
-          changes[i] = penalty; // Miese nach oben (+)
+          changes[i] = penalty; 
           showToast(`💥 ${getPName('thirty', i)} hat die Ansage verfehlt: +${penalty} Miese (${targetStiche} + 6)!`, true);
         } else {
-          changes[i] = -(stiche * factor); // Geschafft -> Stiche abziehen (-)
+          changes[i] = -(stiche * factor);
         }
       } else {
-        // DIE MITSPIELER / RAUSGEHER
         if (rausFlags[i]) {
           changes[i] = -(stiche * factor);
         } else {
           if (stiche === 0) {
-            changes[i] = 6; // Kein Stich gemacht = 6 Miese!
+            changes[i] = 6; 
           } else {
             changes[i] = -(stiche * factor);
           }
@@ -667,7 +695,7 @@ function bindEvents() {
 
   $('resetBtn').onclick = () => {
     if (confirm('Neues Spiel starten? Alle Punkte und Namen werden zurückgesetzt.')) {
-      localStorage.removeItem('binokel_v19_fixed_miese');
+      localStorage.removeItem('binokel_v20_reiz_check');
       state.binokel.players = ['', '', '', ''];
       state.binokel.scores = [0,0,0,0]; state.binokel.history = [];
       state.thirty.players = ['', '', '', ''];
