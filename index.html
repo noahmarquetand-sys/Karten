@@ -211,7 +211,7 @@ th { color: var(--text-muted); font-weight: 600; }
           <label>Spielform</label>
           <select id="aPlayerCount">
             <option value="3" selected>3 Einzelspieler</option>
-            <option value="2_team">4 Personen (2er Teams)</option>
+            <option value="4">4 Einzelspieler (2er Teams getrennt)</option>
           </select>
         </div>
         <div class="input-group">
@@ -245,7 +245,7 @@ th { color: var(--text-muted); font-weight: 600; }
         <input type="number" id="aTargetStiche" value="1" min="1" max="6" inputmode="numeric">
       </div>
 
-      <label>Stiche & Rausgehen pro Partei (Summe Stiche MUSS 6 sein)</label>
+      <label>Stiche & Rausgehen pro Spieler (Summe Stiche MUSS 6 sein)</label>
       <div id="stichInputsContainer"></div>
 
       <button class="btn-primary" id="save30Round">🎯 Runden-Ergebnis eintragen</button>
@@ -299,16 +299,16 @@ const MELDS_DATA = [
 
 let state = {
   mode: 'binokel',
-  binokel: { count: 3, players: ['', '', ''], scores: [0,0,0], history: [] },
-  thirty: { mode: '3', count: 3, startPoints: 30, players: ['', '', ''], scores: [30,30,30], history: [] }
+  binokel: { count: 3, players: ['', '', '', ''], scores: [0,0,0,0], history: [] },
+  thirty: { count: 3, startPoints: 30, players: ['', '', '', ''], scores: [30,30,30,30], history: [] }
 };
 
 let selectedMelds = {};
 const $ = id => document.getElementById(id);
 
-function saveState() { localStorage.setItem('binokel_v17_ansagen', JSON.stringify(state)); }
+function saveState() { localStorage.setItem('binokel_v19_fixed_miese', JSON.stringify(state)); }
 function loadState() {
-  const saved = localStorage.getItem('binokel_v17_ansagen');
+  const saved = localStorage.getItem('binokel_v19_fixed_miese');
   if (saved) { try { state = JSON.parse(saved); } catch(e){} }
 }
 
@@ -382,7 +382,7 @@ function getPName(mode, idx) {
   if (mode === 'binokel') {
     return state.binokel.count === 3 ? `Spieler ${idx+1}` : `Team ${idx+1}`;
   } else {
-    return state.thirty.mode === '3' ? `Spieler ${idx+1}` : `Team ${idx+1}`;
+    return `Spieler ${idx+1}`;
   }
 }
 
@@ -395,7 +395,7 @@ function buildInputs() {
 
   const aInputsDiv = $('aPlayerInputs'); aInputsDiv.innerHTML = '';
   for (let i = 0; i < state.thirty.count; i++) {
-    const defaultPlaceholder = state.thirty.mode === '3' ? `Spieler ${i+1}` : `Team ${i+1}`;
+    const defaultPlaceholder = `Spieler ${i+1}`;
     aInputsDiv.innerHTML += `<div class="input-group"><label>${defaultPlaceholder}</label><input type="text" id="aInp_${i}" value="${state.thirty.players[i] || ''}" placeholder="${defaultPlaceholder}" onchange="onNameChange('thirty', ${i}, this.value)"></div>`;
   }
 }
@@ -407,7 +407,6 @@ function onNameChange(mode, idx, val) {
   updateLabels();
 }
 
-// Ermittelt, wie viele Runden in Folge ein Spieler/Team NACHEINANDER rausgegangen ist
 function getConsecutiveRausCount(playerIdx) {
   let count = 0;
   for (let i = state.thirty.history.length - 1; i >= 0; i--) {
@@ -445,7 +444,7 @@ function updateLabels() {
     row += `</tr>`; tbody.innerHTML += row;
   });
 
-  // 30 ab Labels & Ansager-Dropdown
+  // 30 ab Labels
   const aCount = state.thirty.count;
   const ansagerSelect = $('aAnsager'); ansagerSelect.innerHTML = '';
   for (let i = 0; i < aCount; i++) ansagerSelect.innerHTML += `<option value="${i}">${getPName('thirty', i)}</option>`;
@@ -531,8 +530,11 @@ function bindEvents() {
     buildInputs(); updateLabels(); saveState(); 
   };
   $('aPlayerCount').onchange = (e) => { 
-    state.thirty.mode = e.target.value;
-    state.thirty.count = e.target.value === '3' ? 3 : 2; 
+    state.thirty.count = parseInt(e.target.value); 
+    if (state.thirty.history.length === 0) {
+      const sp = state.thirty.startPoints || 30;
+      state.thirty.scores = Array(state.thirty.count).fill(sp);
+    }
     buildInputs(); updateLabels(); saveState(); 
   };
 
@@ -560,7 +562,7 @@ function bindEvents() {
   $('startPoints30').onchange = (e) => {
     const val = parseInt(e.target.value) || 30; state.thirty.startPoints = val;
     if (state.thirty.history.length === 0) {
-      state.thirty.scores = state.thirty.count === 3 ? [val, val, val] : [val, val];
+      state.thirty.scores = Array(state.thirty.count).fill(val);
     }
     updateLabels(); saveState();
   };
@@ -579,7 +581,7 @@ function bindEvents() {
     // 1. Raus-Status erfassen
     for (let i = 0; i < count; i++) {
       if (getConsecutiveRausCount(i) >= 2) {
-        rausFlags[i] = false; // Sperre: Darf nicht ein 3. Mal in Folge raus!
+        rausFlags[i] = false;
       } else {
         const sel = document.querySelector(`.aRausInput[data-idx="${i}"]`);
         rausFlags[i] = sel ? (sel.value === 'raus') : false;
@@ -617,19 +619,21 @@ function bindEvents() {
       const stiche = rawStiche[i];
 
       if (i === ansagerIdx) {
-        // Der Ansager muss seine angesagte Stiche-Anzahl erreichen
+        // DER ANSAGER: Wenn er seine Ansage NICHT erreicht, geht er pauschal (Ansage + 6) HOCH!
         if (stiche < targetStiche) {
-          changes[i] = 6; // Angesagte Stiche nicht geschafft -> +6 Miese nach oben!
-          showToast(`💥 ${getPName('thirty', i)} hat die angesagten ${targetStiche} Stiche nicht geschafft (+6 Miese)!`, true);
+          const penalty = targetStiche + 6;
+          changes[i] = penalty; // Miese nach oben (+)
+          showToast(`💥 ${getPName('thirty', i)} hat die Ansage verfehlt: +${penalty} Miese (${targetStiche} + 6)!`, true);
         } else {
-          changes[i] = -(stiche * factor); // Geschafft -> Stiche abziehen
+          changes[i] = -(stiche * factor); // Geschafft -> Stiche abziehen (-)
         }
       } else {
+        // DIE MITSPIELER / RAUSGEHER
         if (rausFlags[i]) {
           changes[i] = -(stiche * factor);
         } else {
           if (stiche === 0) {
-            changes[i] = 6; // Kein Stich gemacht -> 6 Miese!
+            changes[i] = 6; // Kein Stich gemacht = 6 Miese!
           } else {
             changes[i] = -(stiche * factor);
           }
@@ -663,12 +667,12 @@ function bindEvents() {
 
   $('resetBtn').onclick = () => {
     if (confirm('Neues Spiel starten? Alle Punkte und Namen werden zurückgesetzt.')) {
-      localStorage.removeItem('binokel_v17_ansagen');
-      state.binokel.players = ['', '', ''];
-      state.binokel.scores = [0,0,0]; state.binokel.history = [];
-      state.thirty.players = ['', '', ''];
+      localStorage.removeItem('binokel_v19_fixed_miese');
+      state.binokel.players = ['', '', '', ''];
+      state.binokel.scores = [0,0,0,0]; state.binokel.history = [];
+      state.thirty.players = ['', '', '', ''];
       const sp = state.thirty.startPoints; 
-      state.thirty.scores = [sp,sp,sp]; 
+      state.thirty.scores = Array(state.thirty.count).fill(sp); 
       state.thirty.history = [];
       selectedMelds = {}; updateMeldUI(); calculateBinokelTotal(); buildInputs(); updateLabels(); saveState(); showToast('Zurückgesetzt!');
     }
@@ -678,7 +682,7 @@ function bindEvents() {
 window.onload = () => {
   loadState(); initMeldButtons(); bindEvents();
   $('bPlayerCount').value = state.binokel.count === 2 ? "2" : "3";
-  $('aPlayerCount').value = state.thirty.mode || "3";
+  $('aPlayerCount').value = state.thirty.count || 3;
   $('startPoints30').value = state.thirty.startPoints || 30;
   buildInputs();
   updateLabels();
